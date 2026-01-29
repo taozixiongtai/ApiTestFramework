@@ -7,14 +7,26 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="8"/>
+
+        <TextBox x:Name="LogTextBox"
+                 Grid.Row="1"
+                 Margin="436,8,8,10"
+                 IsReadOnly="True"
+                 VerticalScrollBarVisibility="Auto"
+                 HorizontalScrollBarVisibility="Auto"
+                 TextWrapping="Wrap"
+                 AcceptsReturn="True"
+                 FontFamily="Consolas"
+                 FontSize="12" />
         <Button x:Name="GenerateSeedButton"
-                Content="生成种子数据"
-                Width="120"
-                Height="30"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Margin="10"
-                Click="GenerateSeedData_Click" />
+                    Content="生成种子数据"
+                    Click="GenerateSeedData_Click" Margin="46,324,634,62" Grid.Row="1" RenderTransformOrigin="1.578,4.445" />
 
     </Grid>
 </Window>

@@ -74,11 +74,28 @@ public class JsonService
             case JsonValueKind.Array:
                 return JsonSerializer.Serialize(element);
             case JsonValueKind.String:
-                if (element.GetString() == "#id#")
+                var jString = element.GetString();
+                if (jString == null)
+                {
+                    return null;
+                }
+                if (jString == "#id#")
                 {
                     return ConvertIdTemplet();
                 }
-                return element.GetString();
+                if (jString.Contains("#random#"))
+                {
+                    return jString.Replace("#random#", Guid.NewGuid().ToString("N"));
+                }
+                if (jString.Contains("#projectId#"))
+                {
+                    return jString.Replace("#projectId#", APP.Dic["projectId"]);
+                }
+                if (jString.Contains("#tableId#"))
+                {
+                    return jString.Replace("#tableId#", APP.Dic["tableId"]);
+                }
+                return jString;
             case JsonValueKind.Number:
                 if (element.TryGetInt64(out var l))
                 {
