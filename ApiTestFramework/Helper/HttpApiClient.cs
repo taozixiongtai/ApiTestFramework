@@ -1,7 +1,4 @@
 ﻿using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Text.Json;
 
 namespace ApiTestFramework.Helper;
@@ -22,7 +19,7 @@ public class HttpApiClient(string baseUrl)
             return;
         }
 
-        string tokenString = await SendAsync<string>(
+        var tokenString = await SendAsync<string>(
             _longinUrl,
             Method.Post,
             new

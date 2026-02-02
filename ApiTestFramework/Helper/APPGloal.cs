@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ApiTestFramework.Helper;
 
-public static class APP
+public static class APPGloal
 {
 
     public static Dictionary<string, string> Dic { set; get; } = [];

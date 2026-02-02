@@ -1,11 +1,13 @@
-﻿using System.Windows;
+﻿using ApiTestFramework.APP;
 using ApiTestFramework.Helper;
-using System.Collections.Generic;
+using Microsoft.Extensions.Options;
+using RestSharp;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Windows;
 using System.Windows.Threading;
-using RestSharp;
 
 namespace ApiTestFramework;
 /// <summary>
@@ -15,8 +17,9 @@ public partial class MainWindow : Window
 {
     private TextWriter _originalOut;
     private TextWriter _originalError;
+    private readonly AppOption _api;
 
-    public MainWindow()
+    public MainWindow(IOptions<AppOption> options)
     {
         InitializeComponent();
 
@@ -27,15 +30,18 @@ public partial class MainWindow : Window
         var writer = new TextBoxWriter(LogTextBox);
         Console.SetOut(writer);
         Console.SetError(writer);
+        _api = options.Value;
+
+        MessageBox.Show(_api.BaseUrl);
     }
 
-    private async Task GenerateSeedData_Click(object sender, RoutedEventArgs e)
+    private async void GenerateSeedData_Click(object sender, RoutedEventArgs e)
     {
         try
         {
             SnowflakeIdGenerator snowflakeIdGenerator = new SnowflakeIdGenerator();
-            APP.Dic.Add("projectId", "");
-            APP.Dic.Add("tableId", snowflakeIdGenerator.NextId().ToString());
+            APPGloal.Dic.Add("projectId", "");
+            APPGloal.Dic.Add("tableId", snowflakeIdGenerator.NextId().ToString());
 
             var connectionString = "Server=192.168.100.200;Port=3306;Database=mbse_platform;Uid=root;Pwd=P@88@123;SslMode=None;AllowPublicKeyRetrieval=true;CharSet=utf8mb4;";
             var db = new DatabaseService(connectionString);
@@ -56,9 +62,9 @@ public partial class MainWindow : Window
             }
 
 
-            var client = new HttpApiClient(APP.BaseUrl);
-            var projectId = APP.Dic["projectId"];
-            var talbleId = APP.Dic["tableId"];
+            var client = new HttpApiClient(APPGloal.BaseUrl);
+            var projectId = APPGloal.Dic["projectId"];
+            var talbleId = APPGloal.Dic["tableId"];
 
             var result = await client.SendAsync<object>($"/api/project/modelingTable/{projectId}/{talbleId}", Method.Get);
 

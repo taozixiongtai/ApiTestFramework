@@ -89,11 +89,11 @@ public class JsonService
                 }
                 if (jString.Contains("#projectId#"))
                 {
-                    return jString.Replace("#projectId#", APP.Dic["projectId"]);
+                    return jString.Replace("#projectId#", APPGloal.Dic["projectId"]);
                 }
                 if (jString.Contains("#tableId#"))
                 {
-                    return jString.Replace("#tableId#", APP.Dic["tableId"]);
+                    return jString.Replace("#tableId#", APPGloal.Dic["tableId"]);
                 }
                 return jString;
             case JsonValueKind.Number:
