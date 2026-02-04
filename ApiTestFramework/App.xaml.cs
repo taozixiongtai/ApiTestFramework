@@ -12,11 +12,11 @@ namespace ApiTestFramework;
 /// </summary>
 public partial class App : Application
 {
-    public static IHost appHost { get; private set; }
+    public static IHost? AppHost { get; private set; }
 
     public App()
     {
-        appHost = Host
+        AppHost = Host
             .CreateDefaultBuilder()
             .ConfigureAppConfiguration(config =>
             {
@@ -26,9 +26,8 @@ public partial class App : Application
             {
                 // 绑定配置
                 services.Configure<AppOption>(context.Configuration);
-
-
                 // 注册服务
+                // todo 把所有的window都注册进来,应该要写一个方法 就像addcontrollers那样
                 services.AddSingleton<MainWindow>();
             })
             .Build();
@@ -36,9 +35,9 @@ public partial class App : Application
 
     protected override async void OnStartup(StartupEventArgs e)
     {
-        await appHost.StartAsync();
+        await AppHost!.StartAsync();
 
-        var mainWindow = appHost.Services.GetRequiredService<MainWindow>();
+        var mainWindow = AppHost.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
 
         base.OnStartup(e);

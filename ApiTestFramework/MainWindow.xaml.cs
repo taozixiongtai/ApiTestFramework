@@ -40,8 +40,8 @@ public partial class MainWindow : Window
         try
         {
             SnowflakeIdGenerator snowflakeIdGenerator = new SnowflakeIdGenerator();
-            APPGloal.Dic.Add("projectId", "");
-            APPGloal.Dic.Add("tableId", snowflakeIdGenerator.NextId().ToString());
+            APPGloal.RequestVariable.Add("projectId", "");
+            APPGloal.RequestVariable.Add("tableId", snowflakeIdGenerator.NextId().ToString());
 
             var connectionString = "Server=192.168.100.200;Port=3306;Database=mbse_platform;Uid=root;Pwd=P@88@123;SslMode=None;AllowPublicKeyRetrieval=true;CharSet=utf8mb4;";
             var db = new DatabaseService(connectionString);
@@ -62,9 +62,9 @@ public partial class MainWindow : Window
             }
 
 
-            var client = new HttpApiClient(APPGloal.BaseUrl);
-            var projectId = APPGloal.Dic["projectId"];
-            var talbleId = APPGloal.Dic["tableId"];
+            var client = new HttpApiClient(_api.BaseUrl);
+            var projectId = APPGloal.RequestVariable["projectId"];
+            var talbleId = APPGloal.RequestVariable["tableId"];
 
             var result = await client.SendAsync<object>($"/api/project/modelingTable/{projectId}/{talbleId}", Method.Get);
 

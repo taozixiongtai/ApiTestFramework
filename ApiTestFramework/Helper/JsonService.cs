@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using ApiTestFramework.APP;
+using System.IO;
 using System.Text.Json;
 
 namespace ApiTestFramework.Helper;
@@ -89,11 +90,11 @@ public class JsonService
                 }
                 if (jString.Contains("#projectId#"))
                 {
-                    return jString.Replace("#projectId#", APPGloal.Dic["projectId"]);
+                    return jString.Replace("#projectId#", APPGloal.RequestVariable["projectId"]);
                 }
                 if (jString.Contains("#tableId#"))
                 {
-                    return jString.Replace("#tableId#", APPGloal.Dic["tableId"]);
+                    return jString.Replace("#tableId#", APPGloal.RequestVariable["tableId"]);
                 }
                 return jString;
             case JsonValueKind.Number:
