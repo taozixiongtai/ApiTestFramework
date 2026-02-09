@@ -1,5 +1,5 @@
-﻿using ApiTestFramework.APP;
-using ApiTestFramework.Helper;
+﻿using ApiTestFramework.Helper;
+using ApiTestFramework.Infrastructure.APP;
 using Microsoft.Extensions.Options;
 using RestSharp;
 using System;

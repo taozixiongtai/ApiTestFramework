@@ -1,4 +1,4 @@
-﻿namespace ApiTestFramework.APP
+﻿namespace ApiTestFramework.Infrastructure.APP
 {
     /// <summary>
     /// 保存应用配置

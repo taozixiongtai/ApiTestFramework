@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ApiTestFramework.APP;
+namespace ApiTestFramework.Infrastructure.APP;
 
 /// <summary>
 /// 用于保存全局数据

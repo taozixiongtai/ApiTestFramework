@@ -1,26 +1,16 @@
-﻿using ApiTestFramework.APP;
-using System.IO;
+﻿using ApiTestFramework.Infrastructure.APP;
+using ApiTestFramework.Infrastructure.Domain;
 using System.Text.Json;
 
-namespace ApiTestFramework.Helper;
+namespace ApiTestFramework.Infrastructure.Helper;
 
-public class JsonService
+internal class JsonHelper
 {
-
-    SnowflakeIdGenerator snowflakeIdGenerator = new SnowflakeIdGenerator();
-
-    public Dictionary<string, List<GenericRecord>> ParseDirectory(string filePath)
+    public Dictionary<string, List<DynamicJsonObject>> ParseDirectory(string jsonString)
     {
-        var result = new Dictionary<string, List<GenericRecord>>(StringComparer.OrdinalIgnoreCase);
+        var result = new Dictionary<string, List<DynamicJsonObject>>(StringComparer.OrdinalIgnoreCase);
 
-        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
-        {
-            return result;
-        }
-
-        var text = File.ReadAllText(filePath);
-
-        using var doc = JsonDocument.Parse(text);
+        using var doc = JsonDocument.Parse(jsonString);
         var root = doc.RootElement;
 
         if (root.ValueKind != JsonValueKind.Object)
@@ -30,7 +20,7 @@ public class JsonService
 
         foreach (var prop in root.EnumerateObject())
         {
-            var list = new List<GenericRecord>();
+            var list = new List<DynamicJsonObject>();
 
 
             if (prop.Value.ValueKind == JsonValueKind.Array)
@@ -54,9 +44,9 @@ public class JsonService
         return result;
     }
 
-    private GenericRecord ConvertJsonObjectToRecord(JsonElement obj)
+    private DynamicJsonObject ConvertJsonObjectToRecord(JsonElement obj)
     {
-        var record = new GenericRecord();
+        var record = new DynamicJsonObject();
 
         foreach (var property in obj.EnumerateObject())
         {
@@ -82,7 +72,7 @@ public class JsonService
                 }
                 if (jString == "#id#")
                 {
-                    return ConvertIdTemplet();
+                    return 1;
                 }
                 if (jString.Contains("#random#"))
                 {
@@ -119,10 +109,4 @@ public class JsonService
                 return element.GetRawText();
         }
     }
-
-    private long ConvertIdTemplet()
-    {
-        return snowflakeIdGenerator.NextId();
-    }
-
 }

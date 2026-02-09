@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="ApiTestFramework.Infrastructure/ApiTestFramework.Infrastructure.csproj" Id="10cd96dc-2057-44df-857d-da0d55468590" />
   <Project Path="ApiTestFramework.Service/ApiTestFramework.Service.csproj" Id="94ea6ef6-05f6-45ec-a292-e1ec1101f84b" />
   <Project Path="ApiTestFramework/ApiTestFramework.csproj" />
 </Solution>

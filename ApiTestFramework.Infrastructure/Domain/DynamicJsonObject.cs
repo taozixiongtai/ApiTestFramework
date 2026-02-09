@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Dynamic;
-using System.Text;
+﻿using System.Dynamic;
 
-namespace ApiTestFramework.Helper;
+namespace ApiTestFramework.Infrastructure.Domain;
 
-public class GenericRecord : DynamicObject
+public class DynamicJsonObject : DynamicObject
 {
     private Dictionary<string, object> _properties = new Dictionary<string, object>();
 
@@ -36,4 +33,4 @@ public class GenericRecord : DynamicObject
     {
         _properties[propertyName.ToLower()] = value;
     }
-}   
+}
