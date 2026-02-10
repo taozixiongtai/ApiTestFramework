@@ -15,8 +15,4 @@
     <ProjectReference Include="..\ApiTestFramework.Infrastructure\ApiTestFramework.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Model\" />
-  </ItemGroup>
-
 </Project>

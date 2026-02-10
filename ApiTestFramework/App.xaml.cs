@@ -1,4 +1,4 @@
-﻿using ApiTestFramework.APP;
+﻿using ApiTestFramework.Infrastructure.APP;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -36,10 +36,6 @@ public partial class App : Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         await AppHost!.StartAsync();
-
-        var mainWindow = AppHost.Services.GetRequiredService<MainWindow>();
-        mainWindow.Show();
-
         base.OnStartup(e);
     }
 }

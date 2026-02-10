@@ -1,5 +1,4 @@
-﻿using ApiTestFramework.Helper;
-using ApiTestFramework.Infrastructure.APP;
+﻿using ApiTestFramework.Components;
 using Microsoft.Extensions.Options;
 using RestSharp;
 using System;
@@ -15,99 +14,16 @@ namespace ApiTestFramework;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private TextWriter _originalOut;
-    private TextWriter _originalError;
-    private readonly AppOption _api;
 
-    public MainWindow(IOptions<AppOption> options)
+    public MainWindow()
     {
         InitializeComponent();
-
-        // Redirect Console output to the LogTextBox
-        _originalOut = Console.Out;
-        _originalError = Console.Error;
-
-        var writer = new TextBoxWriter(LogTextBox);
-        Console.SetOut(writer);
-        Console.SetError(writer);
-        _api = options.Value;
-
-        MessageBox.Show(_api.BaseUrl);
+        Console.SetOut(new TextBoxWriter(LogTextBox));
     }
 
     private async void GenerateSeedData_Click(object sender, RoutedEventArgs e)
     {
-        try
-        {
-            SnowflakeIdGenerator snowflakeIdGenerator = new SnowflakeIdGenerator();
-            APPGloal.RequestVariable.Add("projectId", "");
-            APPGloal.RequestVariable.Add("tableId", snowflakeIdGenerator.NextId().ToString());
-
-            var connectionString = "Server=192.168.100.200;Port=3306;Database=mbse_platform;Uid=root;Pwd=P@88@123;SslMode=None;AllowPublicKeyRetrieval=true;CharSet=utf8mb4;";
-            var db = new DatabaseService(connectionString);
-
-            var jsonService = new JsonService();
-
-            var seedPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Seed", "table", "table.json");
-            if (!File.Exists(seedPath))
-            {
-                seedPath = Path.Combine("Seed", "table", "table.json");
-            }
-
-            var parsed = jsonService.ParseDirectory(seedPath);
-
-            foreach (var kv in parsed)
-            {
-                db.InsertData(kv.Key, kv.Value);
-            }
-
-
-            var client = new HttpApiClient(_api.BaseUrl);
-            var projectId = APPGloal.RequestVariable["projectId"];
-            var talbleId = APPGloal.RequestVariable["tableId"];
-
-            var result = await client.SendAsync<object>($"/api/project/modelingTable/{projectId}/{talbleId}", Method.Get);
-
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"生成失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
+        Console.WriteLine("123");
     }
 
-    private class TextBoxWriter : TextWriter
-    {
-        private readonly System.Windows.Controls.TextBox _textBox;
-
-        public TextBoxWriter(System.Windows.Controls.TextBox textBox)
-        {
-            _textBox = textBox ?? throw new ArgumentNullException(nameof(textBox));
-        }
-
-        public override Encoding Encoding => Encoding.UTF8;
-
-        public override void Write(char value)
-        {
-            Write(value.ToString());
-        }
-
-        public override void Write(string? value)
-        {
-            if (value == null)
-            {
-                return;
-            }
-            // Ensure we update UI on the dispatcher thread
-            _textBox.Dispatcher.BeginInvoke((Action)(() =>
-            {
-                _textBox.AppendText(value);
-                _textBox.ScrollToEnd();
-            }), DispatcherPriority.Background);
-        }
-
-        public override void WriteLine(string? value)
-        {
-            Write((value ?? string.Empty) + Environment.NewLine);
-        }
-    }
 }
