@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ApiTestFramework.Infrastructure.APP;
+﻿namespace ApiTestFramework.Infrastructure.APP;
 
 /// <summary>
 /// 用于保存全局数据

@@ -1,12 +1,8 @@
 ﻿using ApiTestFramework.Components;
-using Microsoft.Extensions.Options;
-using RestSharp;
-using System;
-using System.Collections.Generic;
+using ApiTestFramework.Infrastructure.Helper;
+using ApiTestFramework.Service.Interface;
 using System.IO;
-using System.Text;
 using System.Windows;
-using System.Windows.Threading;
 
 namespace ApiTestFramework;
 /// <summary>
@@ -14,16 +10,28 @@ namespace ApiTestFramework;
 /// </summary>
 public partial class MainWindow : Window
 {
+    private readonly IDatabaseService _databaseService;
 
-    public MainWindow()
+    public MainWindow(IDatabaseService databaseService)
     {
         InitializeComponent();
         Console.SetOut(new TextBoxWriter(LogTextBox));
+        _databaseService = databaseService;
     }
 
     private async void GenerateSeedData_Click(object sender, RoutedEventArgs e)
     {
-        Console.WriteLine("123");
+        var path = Path.Combine(AppContext.BaseDirectory, "Seed", "table");
+        var allFile = FileHelper.ReadAllJsonFiles(path);
+        foreach (var file in allFile)
+        {
+            var DynamicJsonObject = JsonHelper.ParseDirectory(file.Value);
+            foreach (var item in DynamicJsonObject)
+            {
+                _databaseService.InsertData(item.Key, item.Value);
+            }
+
+        }
     }
 
 }

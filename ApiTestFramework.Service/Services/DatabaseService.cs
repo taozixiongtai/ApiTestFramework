@@ -1,5 +1,7 @@
-﻿using ApiTestFramework.Infrastructure.Domain;
+﻿using ApiTestFramework.Infrastructure.APP;
+using ApiTestFramework.Infrastructure.Domain;
 using ApiTestFramework.Service.Interface;
+using Microsoft.Extensions.Options;
 using MySqlConnector;
 
 namespace ApiTestFramework.Service.Services;
@@ -7,18 +9,10 @@ namespace ApiTestFramework.Service.Services;
 
 public class DatabaseService : IDatabaseService
 {
-    private readonly string _connectionString;
-
-    public DatabaseService(string connectionString)
+    private readonly AppOption _appOption;
+    public DatabaseService(IOptions<AppOption> options)
     {
-        _connectionString = connectionString;
-    }
-
-    public void InsertData(string folderPath)
-    {
-        // 1.获取文件夹下所有JSON文件
-         
-        // 2.解析每个JSON文件，执行插入操作
+        _appOption = options.Value;
     }
 
     public void InsertData(string tableName, List<DynamicJsonObject> records)
@@ -28,7 +22,7 @@ public class DatabaseService : IDatabaseService
             return;
         }
 
-        using var connection = new MySqlConnection(_connectionString);  // 修改这里
+        using var connection = new MySqlConnection(_appOption.ConnectionString);  // 修改这里
         connection.Open();
 
         // 获取第一条记录的字段名

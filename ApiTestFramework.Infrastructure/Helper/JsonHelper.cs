@@ -4,9 +4,9 @@ using System.Text.Json;
 
 namespace ApiTestFramework.Infrastructure.Helper;
 
-internal class JsonHelper
+public static class JsonHelper
 {
-    public Dictionary<string, List<DynamicJsonObject>> ParseDirectory(string jsonString)
+    public static Dictionary<string, List<DynamicJsonObject>> ParseDirectory(string jsonString)
     {
         var result = new Dictionary<string, List<DynamicJsonObject>>(StringComparer.OrdinalIgnoreCase);
 
@@ -44,7 +44,7 @@ internal class JsonHelper
         return result;
     }
 
-    private DynamicJsonObject ConvertJsonObjectToRecord(JsonElement obj)
+    private static DynamicJsonObject ConvertJsonObjectToRecord(JsonElement obj)
     {
         var record = new DynamicJsonObject();
 
@@ -57,7 +57,7 @@ internal class JsonHelper
         return record;
     }
 
-    private object? ConvertJsonElementToValue(JsonElement element)
+    private static object? ConvertJsonElementToValue(JsonElement element)
     {
         switch (element.ValueKind)
         {

@@ -14,5 +14,7 @@
         public string? LoginUserName { get; set; }
 
         public Dictionary<string, string>? RequestHeader { set; get; }
+
+        public string? ConnectionString { get; set; }
     }
 }
