@@ -10,4 +10,9 @@ public static class APPGloal
     /// </summary>
     public static Dictionary<string, string> RequestVariable { set; get; } = [];
 
+    /// <summary>
+    /// 保存token
+    /// </summary>
+    public static String Token { set; get; } = string.Empty;
+
 }

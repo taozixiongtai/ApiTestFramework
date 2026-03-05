@@ -11,7 +11,7 @@ namespace ApiTestFramework.Infrastructure.Helper
         /// <param name="path">目录路径</param>
         /// <param name="includeSubDirectories">是否包含子目录</param>
         /// <returns>key=文件路径, value=json内容</returns>
-        public static Dictionary<string, string> ReadAllJsonFiles(string path)
+        public static async Task<Dictionary<string, string>> ReadAllJsonFiles(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
                 throw new BusinessException("目录不能为空");
@@ -25,7 +25,7 @@ namespace ApiTestFramework.Infrastructure.Helper
 
             foreach (var file in files)
             {
-                var content = File.ReadAllText(file);
+                var content = await File.ReadAllTextAsync(file);
                 result[file] = content;
             }
 

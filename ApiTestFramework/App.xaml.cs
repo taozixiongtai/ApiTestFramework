@@ -1,5 +1,6 @@
 ﻿using ApiTestFramework.Components;
 using ApiTestFramework.Infrastructure.APP;
+using ApiTestFramework.Infrastructure.JsonTransform;
 using ApiTestFramework.Service.Interface;
 using ApiTestFramework.Service.Services;
 using Microsoft.Extensions.Configuration;
@@ -34,6 +35,10 @@ public partial class App : Application
                 // todo 把所有的window都注册进来,应该要写一个方法 就像addcontrollers那样
                 services.AddSingleton<MainWindow>();
                 services.AddSingleton<IDatabaseService, DatabaseService>();
+
+                // todo 写个方法批量注册责任链的接口
+                services.AddTransient<IJsonTransform, SnowIdTransfrom>();
+                services.AddTransient<JsonTransformPipeline>();
             })
             .Build();
     }

@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using ApiTestFramework.Infrastructure.Helper;
 
 namespace ApiTestFramework.Infrastructure.JsonTransform
 {
-    internal class SnowIdTransfrom : IJsonTransform
+    public class SnowIdTransfrom : IJsonTransform
     {
         public string Transform(string json)
         {
-          
+            return json.Replace($"#SnowId#", SnowflakeIdGenerator.NextId().ToString());
         }
     }
 }
