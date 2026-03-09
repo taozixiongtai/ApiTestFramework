@@ -1,11 +1,39 @@
 ﻿using ApiTestFramework.Infrastructure.APP;
 using ApiTestFramework.Infrastructure.Domain;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace ApiTestFramework.Infrastructure.Helper;
 
 public static class JsonHelper
 {
+    /// <summary>
+    /// 在json字符串中根据路径获取值，路径使用点分隔，例如 "data.user.name"
+    /// </summary>
+    /// <param name="json"></param>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    public static string? GetValue(string json, string path)
+    {
+        if (string.IsNullOrWhiteSpace(json) || string.IsNullOrWhiteSpace(path))
+            return null;
+
+        JsonNode? node = JsonNode.Parse(json);
+        if (node == null) return null;
+
+        string[] parts = path.Split('.');
+
+        foreach (var part in parts)
+        {
+            if (node == null)
+                return null;
+
+            node = node[part];
+        }
+
+        return node?.ToString();
+    }
+
     public static Dictionary<string, List<DynamicJsonObject>> ParseDirectory(string jsonString)
     {
         var result = new Dictionary<string, List<DynamicJsonObject>>(StringComparer.OrdinalIgnoreCase);

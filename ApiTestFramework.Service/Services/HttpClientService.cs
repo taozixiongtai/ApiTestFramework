@@ -35,12 +35,35 @@ public class HttpClientService : IHttpClientService
         return HandlerResult(result);
     }
 
+    public async Task<string> GetStringAsync(string url)
+    {
+        var request = await CreateRequest(url, Method.Get);
+        var response = await _client.ExecuteAsync(request);
+        if (!response.IsSuccessful)
+        {
+            throw new Exception($"请求调用失败 {response.StatusCode}: {response.ErrorMessage}");
+        }
+        return response.Content ?? string.Empty;
+    }
+
     public async Task<T> PostAsync<T>(string url, object body)
     {
         var request = await CreateRequest(url, Method.Post);
         request.AddJsonBody(body);
         var result = await _client.ExecuteAsync<T>(request);
         return HandlerResult(result);
+    }
+
+    public async Task<string> PostStringAsync(string url, object body)
+    {
+        var request = await CreateRequest(url, Method.Post);
+        request.AddJsonBody(body);
+        var response = await _client.ExecuteAsync(request);
+        if (!response.IsSuccessful)
+        {
+            throw new Exception($"请求调用失败 {response.StatusCode}: {response.ErrorMessage}");
+        }
+        return response.Content ?? string.Empty;
     }
 
     public async Task<T> PutAsync<T>(string url, object body)
@@ -51,11 +74,34 @@ public class HttpClientService : IHttpClientService
         return HandlerResult(result);
     }
 
+    public async Task<string> PutStringAsync(string url, object body)
+    {
+        var request = await CreateRequest(url, Method.Put);
+        request.AddJsonBody(body);
+        var response = await _client.ExecuteAsync(request);
+        if (!response.IsSuccessful)
+        {
+            throw new Exception($"请求调用失败 {response.StatusCode}: {response.ErrorMessage}");
+        }
+        return response.Content ?? string.Empty;
+    }
+
     public async Task<T> DeleteAsync<T>(string url)
     {
         var request = await CreateRequest(url, Method.Delete);
         var result = await _client.ExecuteAsync<T>(request);
         return HandlerResult(result);
+    }
+
+    public async Task<string> DeleteStringAsync(string url)
+    {
+        var request = await CreateRequest(url, Method.Delete);
+        var response = await _client.ExecuteAsync(request);
+        if (!response.IsSuccessful)
+        {
+            throw new Exception($"请求调用失败 {response.StatusCode}: {response.ErrorMessage}");
+        }
+        return response.Content ?? string.Empty;
     }
 
     private T HandlerResult<T>(RestResponse<T> response)
