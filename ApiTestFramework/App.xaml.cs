@@ -1,20 +1,19 @@
-﻿using ApiTestFramework.Components;
+using ApiTestFramework.Components;
 using ApiTestFramework.Infrastructure.APP;
 using ApiTestFramework.Infrastructure.JsonTransform;
+using ApiTestFramework.Infrastructure.Service;
 using ApiTestFramework.Service.Interface;
 using ApiTestFramework.Service.Services;
+using ApiTestFramework.ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Configuration;
 using System.Data;
 using System.Windows;
 using System.Windows.Threading;
 
 namespace ApiTestFramework;
-/// <summary>
-/// Interaction logic for App.xaml
-/// </summary>
+
 public partial class App : Application
 {
     public static IHost? AppHost { get; private set; }
@@ -29,14 +28,13 @@ public partial class App : Application
             })
             .ConfigureServices((context, services) =>
             {
-                // 绑定配置
                 services.Configure<AppOption>(context.Configuration);
-                // 注册服务
-                // todo 把所有的window都注册进来,应该要写一个方法 就像addcontrollers那样
+
+                services.AddSingleton<DataService>();
+                services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();
                 services.AddSingleton<IDatabaseService, DatabaseService>();
 
-                // todo 写个方法批量注册责任链的接口
                 services.AddTransient<IJsonTransform, SnowIdTransfrom>();
                 services.AddTransient<JsonTransformPipeline>();
             })
@@ -47,25 +45,24 @@ public partial class App : Application
     {
         await AppHost!.StartAsync();
 
+        var dataService = AppHost.Services.GetRequiredService<DataService>();
+        await dataService.InitializeAsync();
+
         base.OnStartup(e);
-        // UI线程异常
+
         this.DispatcherUnhandledException += OnDispatcherUnhandledException;
-
-        // 非UI线程异常
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
-
-        // Task异常
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
         var mainWindow = AppHost.Services.GetRequiredService<MainWindow>();
+        mainWindow.DataContext = AppHost.Services.GetRequiredService<MainViewModel>();
         mainWindow.Show();
     }
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         GlobalExceptionHandler.Handle(e.Exception);
-
-        e.Handled = true; // 防止程序崩溃
+        e.Handled = true;
     }
 
     private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -80,4 +77,3 @@ public partial class App : Application
         e.SetObserved();
     }
 }
-

@@ -1,18 +1,30 @@
-﻿using ApiTestFramework.Infrastructure.APP;
+using ApiTestFramework.Infrastructure.APP;
 using ApiTestFramework.Infrastructure.Domain;
 using ApiTestFramework.Service.Interface;
 using Microsoft.Extensions.Options;
-using MySqlConnector;
+using SqlSugar;
+using System.Data;
 
 namespace ApiTestFramework.Service.Services;
 
-
 public class DatabaseService : IDatabaseService
 {
-    private readonly AppOption _appOption;
+    private readonly SqlSugarClient _db;
+
     public DatabaseService(IOptions<AppOption> options)
     {
-        _appOption = options.Value;
+        var appOption = options.Value;
+
+        var dbType = Enum.TryParse<SqlSugar.DbType>(appOption.DbType, ignoreCase: true, out var parsedDbType)
+            ? parsedDbType
+            : SqlSugar.DbType.MySql;
+
+        _db = new SqlSugarClient(new ConnectionConfig()
+        {
+            ConnectionString = appOption.ConnectionString,
+            DbType = dbType,
+            IsAutoCloseConnection = appOption.IsAutoCloseConnection
+        });
     }
 
     public void InsertData(string tableName, List<DynamicJsonObject> records)
@@ -22,51 +34,26 @@ public class DatabaseService : IDatabaseService
             return;
         }
 
-        using var connection = new MySqlConnection(_appOption.ConnectionString);  // 修改这里
-        connection.Open();
-
-        // 获取第一条记录的字段名
         var firstRecord = records.First();
         var properties = firstRecord.GetProperties();
-        var columns = properties.Keys.ToList();
 
-        // 创建参数化SQL
-        var sql = GenerateInsertSql(tableName, columns);
-
-        using var transaction = connection.BeginTransaction();
-        try
+        var dataTable = new DataTable();
+        foreach (var column in properties.Keys)
         {
-            foreach (var record in records)
+            dataTable.Columns.Add(column);
+        }
+
+        foreach (var record in records)
+        {
+            var row = dataTable.NewRow();
+            foreach (var column in properties.Keys)
             {
-                using var command = new MySqlCommand(sql, connection, transaction);  // 修改这里
-                                                                                     // 添加参数
-                foreach (var column in columns)
-                {
-                    var value = record.GetValue(column) ?? DBNull.Value;
-                    command.Parameters.AddWithValue($"@{column}", value);
-                }
-
-                command.ExecuteNonQuery();
+                var value = record.GetValue(column);
+                row[column] = value ?? DBNull.Value;
             }
-
-            transaction.Commit();
-            Console.WriteLine($"成功插入 {records.Count} 条记录到表 {tableName}");
+            dataTable.Rows.Add(row);
         }
-        catch (Exception ex)
-        {
-            transaction.Rollback();
-            Console.WriteLine($"插入失败: {ex.Message}");
-            throw;
-        }
+
+        _db.Fastest<DataTable>().BulkCopy(tableName, dataTable);
     }
-
-
-    private static string GenerateInsertSql(string tableName, List<string> columns)
-    {
-        var columnNames = string.Join(", ", columns.Select(c => $"`{c}`"));  // MySQL使用反引号
-        var parameterNames = string.Join(", ", columns.Select(c => $"@{c}"));
-
-        return $"INSERT INTO `{tableName}` ({columnNames}) VALUES ({parameterNames})";  // 修改这里
-    }
-
 }

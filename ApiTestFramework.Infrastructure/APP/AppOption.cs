@@ -1,4 +1,4 @@
-﻿namespace ApiTestFramework.Infrastructure.APP
+﻿﻿﻿﻿namespace ApiTestFramework.Infrastructure.APP
 {
     /// <summary>
     /// 保存应用配置
@@ -16,5 +16,9 @@
         public Dictionary<string, string>? RequestHeader { set; get; }
 
         public string? ConnectionString { get; set; }
+
+        public string? DbType { get; set; }
+
+        public bool IsAutoCloseConnection { get; set; } = true;
     }
 }

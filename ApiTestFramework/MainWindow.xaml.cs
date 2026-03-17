@@ -1,25 +1,60 @@
-﻿using ApiTestFramework.Components;
-using ApiTestFramework.Infrastructure.Helper;
-using ApiTestFramework.Infrastructure.JsonTransform;
-using ApiTestFramework.Service.Interface;
-using System.IO;
+using ApiTestFramework.Models;
+using ApiTestFramework.ViewModels;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace ApiTestFramework;
-/// <summary>
-/// Interaction logic for MainWindow.xaml
-/// </summary>
+
 public partial class MainWindow : Window
 {
-
-    public MainWindow( )
+    public MainWindow()
     {
         InitializeComponent();
-        Console.SetOut(new TextBoxWriter(LogTextBox));
     }
 
-    private async void GenerateSeedData_Click(object sender, RoutedEventArgs e)
+    private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
     {
+        if (DataContext is MainViewModel viewModel && e.NewValue is RequestNode node)
+        {
+            viewModel.TreeViewModel.OnNodeSelected(node);
+        }
     }
 
+    private void AddHeader_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            viewModel.DetailViewModel.AddHeader();
+        }
+    }
+
+    private void DeleteHeader_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.DataContext is KeyValuePair<string, string> header)
+        {
+            if (DataContext is MainViewModel viewModel)
+            {
+                viewModel.DetailViewModel.RemoveHeader(header);
+            }
+        }
+    }
+
+    private void AddVariable_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            viewModel.SettingsViewModel.AddVariable();
+        }
+    }
+
+    private void DeleteVariable_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.DataContext is KeyValuePair<string, string> variable)
+        {
+            if (DataContext is MainViewModel viewModel)
+            {
+                viewModel.SettingsViewModel.RemoveVariable(variable);
+            }
+        }
+    }
 }

@@ -1,4 +1,6 @@
-﻿using ApiTestFramework.Infrastructure.Exceptions;
+﻿﻿﻿﻿using ApiTestFramework.Infrastructure.Domain;
+using ApiTestFramework.Infrastructure.Exceptions;
+using System.Text.Json;
 
 namespace ApiTestFramework.Infrastructure.Helper
 {
@@ -32,6 +34,62 @@ namespace ApiTestFramework.Infrastructure.Helper
             return result;
         }
 
+        /// <summary>
+        /// 解析 JSON 文件内容为表名和记录列表的映射
+        /// </summary>
+        /// <param name="jsonFilePath">JSON 文件路径</param>
+        /// <returns>key=表名, value=记录列表</returns>
+        public static Dictionary<string, List<DynamicJsonObject>> ParseJsonToTableRecords(string jsonFilePath)
+        {
+            if (string.IsNullOrWhiteSpace(jsonFilePath))
+                throw new BusinessException("文件路径不能为空");
 
+            if (!File.Exists(jsonFilePath))
+                throw new BusinessException($"文件不存在: {jsonFilePath}");
+
+            var jsonContent = File.ReadAllText(jsonFilePath);
+            return ParseJsonContentToTableRecords(jsonContent);
+        }
+
+        /// <summary>
+        /// 解析 JSON 内容为表名和记录列表的映射
+        /// </summary>
+        /// <param name="jsonContent">JSON 内容字符串</param>
+        /// <returns>key=表名, value=记录列表</returns>
+        public static Dictionary<string, List<DynamicJsonObject>> ParseJsonContentToTableRecords(string jsonContent)
+        {
+            var result = new Dictionary<string, List<DynamicJsonObject>>();
+
+            using var jsonDoc = JsonDocument.Parse(jsonContent);
+
+            foreach (var tableElement in jsonDoc.RootElement.EnumerateObject())
+            {
+                var tableName = tableElement.Name;
+                var records = new List<DynamicJsonObject>();
+
+                foreach (var item in tableElement.Value.EnumerateArray())
+                {
+                    var record = new DynamicJsonObject();
+                    foreach (var prop in item.EnumerateObject())
+                    {
+                        object value = prop.Value.ValueKind switch
+                        {
+                            JsonValueKind.String => prop.Value.GetString() ?? "",
+                            JsonValueKind.Number => prop.Value.GetDouble(),
+                            JsonValueKind.True => true,
+                            JsonValueKind.False => false,
+                            JsonValueKind.Null => "",
+                            _ => prop.Value.ToString()
+                        };
+                        record.Set(prop.Name, value);
+                    }
+                    records.Add(record);
+                }
+
+                result[tableName] = records;
+            }
+
+            return result;
+        }
     }
 }

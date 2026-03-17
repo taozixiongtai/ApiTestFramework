@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace ApiTestFramework.Service.Services;
 
-namespace ApiTestFramework.Service.Services
+public interface ITestHandlerService
 {
-    public interface ITestHandlerService
-    {
 
-        public Task ExecuteTestCase();
-    }
+    public Task ExecuteTestCase();
 }

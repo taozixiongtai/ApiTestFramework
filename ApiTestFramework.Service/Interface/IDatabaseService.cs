@@ -1,12 +1,8 @@
-﻿using ApiTestFramework.Infrastructure.Domain;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using ApiTestFramework.Infrastructure.Domain;
 
-namespace ApiTestFramework.Service.Interface
+namespace ApiTestFramework.Service.Interface;
+
+public interface IDatabaseService
 {
-    public interface IDatabaseService
-    {
-        void InsertData(string tableName, List<DynamicJsonObject> records);
-    }
+    void InsertData(string tableName, List<DynamicJsonObject> records);
 }
