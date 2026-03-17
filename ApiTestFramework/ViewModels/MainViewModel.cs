@@ -1,5 +1,5 @@
-using ApiTestFramework.Infrastructure.Service;
 using ApiTestFramework.Models;
+using ApiTestFramework.Service.Interface;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows;
@@ -8,7 +8,7 @@ namespace ApiTestFramework.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
-    private readonly DataService _dataService;
+    private readonly IDataService _dataService;
 
     [ObservableProperty]
     private RequestTreeViewModel _treeViewModel;
@@ -22,7 +22,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isSettingsOpen;
 
-    public MainViewModel(DataService dataService)
+    public MainViewModel(IDataService dataService)
     {
         _dataService = dataService;
 

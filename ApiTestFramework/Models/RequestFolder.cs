@@ -9,7 +9,7 @@ public partial class RequestFolder : RequestNode
 {
     public RequestFolder()
     {
-        NodeType = TreeNodeType.Folder;
+        NodeType = TreeNodeTypeEnum.Folder;
     }
 
     [ObservableProperty]
@@ -20,7 +20,7 @@ public partial class RequestItemNode : RequestNode
 {
     public RequestItemNode()
     {
-        NodeType = TreeNodeType.Request;
+        NodeType = TreeNodeTypeEnum.Request;
     }
 
     [ObservableProperty]

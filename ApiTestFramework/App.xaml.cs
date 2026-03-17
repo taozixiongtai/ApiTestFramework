@@ -1,7 +1,7 @@
 using ApiTestFramework.Components;
 using ApiTestFramework.Infrastructure.APP;
 using ApiTestFramework.Infrastructure.JsonTransform;
-using ApiTestFramework.Infrastructure.Service;
+using ApiTestFramework.Mapper;
 using ApiTestFramework.Service.Interface;
 using ApiTestFramework.Service.Services;
 using ApiTestFramework.ViewModels;
@@ -20,6 +20,8 @@ public partial class App : Application
 
     public App()
     {
+        DataMapper.Configure();
+
         AppHost = Host
             .CreateDefaultBuilder()
             .ConfigureAppConfiguration(config =>
@@ -30,7 +32,7 @@ public partial class App : Application
             {
                 services.Configure<AppOption>(context.Configuration);
 
-                services.AddSingleton<DataService>();
+                services.AddSingleton<IDataService, DataService>();
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();
                 services.AddSingleton<IDatabaseService, DatabaseService>();
@@ -45,7 +47,7 @@ public partial class App : Application
     {
         await AppHost!.StartAsync();
 
-        var dataService = AppHost.Services.GetRequiredService<DataService>();
+        var dataService = AppHost.Services.GetRequiredService<IDataService>();
         await dataService.InitializeAsync();
 
         base.OnStartup(e);

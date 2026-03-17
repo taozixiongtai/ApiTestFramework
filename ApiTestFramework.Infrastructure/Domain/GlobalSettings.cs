@@ -15,12 +15,12 @@ namespace ApiTestFramework.Infrastructure.Domain
         /// <summary>
         /// 全局请求变量
         /// </summary>
-        public Dictionary<string, string> Variables { get; set; } = new();
+        public Dictionary<string, string> Variables { get; set; } = [];
 
         /// <summary>
         /// 全局请求头
         /// </summary>
-        public Dictionary<string, string> GlobalHeaders { get; set; } = new();
+        public Dictionary<string, string> GlobalHeaders { get; set; } = [];
 
         /// <summary>
         /// 基础URL

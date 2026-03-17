@@ -1,6 +1,7 @@
 using ApiTestFramework.Infrastructure.Enum;
-using ApiTestFramework.Infrastructure.Service;
+using ApiTestFramework.Mapper;
 using ApiTestFramework.Models;
+using ApiTestFramework.Service.Interface;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
@@ -9,7 +10,7 @@ namespace ApiTestFramework.ViewModels;
 
 public partial class RequestTreeViewModel : ObservableObject
 {
-    private readonly DataService _dataService;
+    private readonly IDataService _dataService;
 
     [ObservableProperty]
     private ObservableCollection<RequestNode> _nodes = new();
@@ -19,7 +20,7 @@ public partial class RequestTreeViewModel : ObservableObject
 
     public event Action<RequestItemNode>? RequestSelected;
 
-    public RequestTreeViewModel(DataService dataService)
+    public RequestTreeViewModel(IDataService dataService)
     {
         _dataService = dataService;
         LoadFromData();

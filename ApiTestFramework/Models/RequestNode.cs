@@ -1,3 +1,4 @@
+using ApiTestFramework.Infrastructure.Enum;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ApiTestFramework.Models;
@@ -14,7 +15,7 @@ public partial class RequestNode : ObservableObject
     private string? _parentId;
 
     [ObservableProperty]
-    private TreeNodeType _nodeType;
+    private TreeNodeTypeEnum _nodeType;
 
     [ObservableProperty]
     private bool _isExpanded;

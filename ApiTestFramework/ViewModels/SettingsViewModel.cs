@@ -1,4 +1,4 @@
-using ApiTestFramework.Infrastructure.Service;
+using ApiTestFramework.Service.Interface;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
@@ -7,7 +7,7 @@ namespace ApiTestFramework.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
-    private readonly DataService _dataService;
+    private readonly IDataService _dataService;
 
     [ObservableProperty]
     private string _token = string.Empty;
@@ -21,7 +21,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<KeyValuePair<string, string>> _globalHeaders = new();
 
-    public SettingsViewModel(DataService dataService)
+    public SettingsViewModel(IDataService dataService)
     {
         _dataService = dataService;
         LoadFromData();
