@@ -1,5 +1,6 @@
 using ApiTestFramework.Components;
 using ApiTestFramework.Infrastructure.APP;
+using ApiTestFramework.Infrastructure.Domain;
 using ApiTestFramework.Infrastructure.JsonTransform;
 using ApiTestFramework.Mapper;
 using ApiTestFramework.Service.Interface;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Data;
+using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -32,7 +34,10 @@ public partial class App : Application
             {
                 services.Configure<AppOption>(context.Configuration);
 
-                services.AddSingleton<IDataService, DataService>();
+                var basePath = AppDomain.CurrentDomain.BaseDirectory;
+                services.AddSingleton<IRepository<GlobalSettings>>(sp => new JsonRepository<GlobalSettings>(Path.Combine(basePath, "settings.json")));
+                services.AddSingleton<IRepository<List<RequestTreeItem>>>(sp => new JsonRepository<List<RequestTreeItem>>(Path.Combine(basePath, "request_tree.json")));
+
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();
                 services.AddSingleton<IDatabaseService, DatabaseService>();
@@ -46,9 +51,6 @@ public partial class App : Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         await AppHost!.StartAsync();
-
-        var dataService = AppHost.Services.GetRequiredService<IDataService>();
-        await dataService.InitializeAsync();
 
         base.OnStartup(e);
 

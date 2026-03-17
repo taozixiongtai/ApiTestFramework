@@ -1,3 +1,4 @@
+using ApiTestFramework.Infrastructure.Domain;
 using ApiTestFramework.Infrastructure.Enum;
 using ApiTestFramework.Mapper;
 using ApiTestFramework.Models;
@@ -10,7 +11,7 @@ namespace ApiTestFramework.ViewModels;
 
 public partial class RequestTreeViewModel : ObservableObject
 {
-    private readonly IDataService _dataService;
+    private readonly IRepository<List<RequestTreeItem>> _treeRepository;
 
     [ObservableProperty]
     private ObservableCollection<RequestNode> _nodes = new();
@@ -20,22 +21,22 @@ public partial class RequestTreeViewModel : ObservableObject
 
     public event Action<RequestItemNode>? RequestSelected;
 
-    public RequestTreeViewModel(IDataService dataService)
+    public RequestTreeViewModel(IRepository<List<RequestTreeItem>> treeRepository)
     {
-        _dataService = dataService;
+        _treeRepository = treeRepository;
         LoadFromData();
     }
 
-    private void LoadFromData()
+    private async void LoadFromData()
     {
-        var treeData = _dataService.GetRequestTree();
+        var treeData = await _treeRepository.GetAsync();
         Nodes = DataMapper.ToViewModel(treeData);
     }
 
     public async Task SaveToDataAsync()
     {
         var treeData = DataMapper.ToDomain(Nodes);
-        await _dataService.SaveRequestTreeAsync(treeData);
+        await _treeRepository.SaveAsync(treeData);
     }
 
     [RelayCommand]

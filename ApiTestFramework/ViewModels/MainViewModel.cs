@@ -1,3 +1,4 @@
+using ApiTestFramework.Infrastructure.Domain;
 using ApiTestFramework.Models;
 using ApiTestFramework.Service.Interface;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -8,8 +9,6 @@ namespace ApiTestFramework.ViewModels;
 
 public partial class MainViewModel : ObservableObject
 {
-    private readonly IDataService _dataService;
-
     [ObservableProperty]
     private RequestTreeViewModel _treeViewModel;
 
@@ -22,13 +21,13 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isSettingsOpen;
 
-    public MainViewModel(IDataService dataService)
+    public MainViewModel(
+        IRepository<GlobalSettings> settingsRepository,
+        IRepository<List<RequestTreeItem>> treeRepository)
     {
-        _dataService = dataService;
-
-        TreeViewModel = new RequestTreeViewModel(_dataService);
+        TreeViewModel = new RequestTreeViewModel(treeRepository);
         DetailViewModel = new RequestDetailViewModel();
-        SettingsViewModel = new SettingsViewModel(_dataService);
+        SettingsViewModel = new SettingsViewModel(settingsRepository);
 
         TreeViewModel.RequestSelected += OnRequestSelected;
     }

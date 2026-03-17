@@ -1,3 +1,4 @@
+using ApiTestFramework.Infrastructure.Domain;
 using ApiTestFramework.Service.Interface;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -7,7 +8,7 @@ namespace ApiTestFramework.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
-    private readonly IDataService _dataService;
+    private readonly IRepository<GlobalSettings> _settingsRepository;
 
     [ObservableProperty]
     private string _token = string.Empty;
@@ -21,15 +22,15 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<KeyValuePair<string, string>> _globalHeaders = new();
 
-    public SettingsViewModel(IDataService dataService)
+    public SettingsViewModel(IRepository<GlobalSettings> settingsRepository)
     {
-        _dataService = dataService;
+        _settingsRepository = settingsRepository;
         LoadFromData();
     }
 
-    private void LoadFromData()
+    private async void LoadFromData()
     {
-        var settings = _dataService.GetSettings();
+        var settings = await _settingsRepository.GetAsync();
 
         Token = settings.Token;
         BaseUrl = settings.BaseUrl;
@@ -50,7 +51,7 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     public async Task SaveAsync()
     {
-        var settings = _dataService.GetSettings();
+        var settings = await _settingsRepository.GetAsync();
         settings.Token = Token;
         settings.BaseUrl = BaseUrl;
 
@@ -72,7 +73,7 @@ public partial class SettingsViewModel : ObservableObject
             }
         }
 
-        await _dataService.SaveSettingsAsync(settings);
+        await _settingsRepository.SaveAsync(settings);
     }
 
     public void AddVariable()
