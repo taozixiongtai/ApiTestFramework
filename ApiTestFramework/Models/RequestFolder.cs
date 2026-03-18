@@ -14,6 +14,14 @@ public partial class RequestFolder : RequestNode
 
     [ObservableProperty]
     private ObservableCollection<RequestNode> _children = new();
+
+    public override List<TreeNodeMenuItem> GetContextMenuItems()
+    {
+        return new List<TreeNodeMenuItem>
+        {
+            new() { Action = TreeNodeMenuActionEnum.Delete, Header = "删除", Icon = "🗑" }
+        };
+    }
 }
 
 public partial class RequestItemNode : RequestNode
@@ -34,4 +42,12 @@ public partial class RequestItemNode : RequestNode
 
     [ObservableProperty]
     private ObservableCollection<KeyValuePair<string, string>> _headers = new();
+
+    public override List<TreeNodeMenuItem> GetContextMenuItems()
+    {
+        return new List<TreeNodeMenuItem>
+        {
+            new() { Action = TreeNodeMenuActionEnum.Delete, Header = "删除", Icon = "🗑" }
+        };
+    }
 }

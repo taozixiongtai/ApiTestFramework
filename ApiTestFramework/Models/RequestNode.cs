@@ -22,4 +22,12 @@ public partial class RequestNode : ObservableObject
 
     [ObservableProperty]
     private bool _isSelected;
+
+    public virtual List<TreeNodeMenuItem> GetContextMenuItems()
+    {
+        return new List<TreeNodeMenuItem>
+        {
+            new() { Action = TreeNodeMenuActionEnum.Delete, Header = "删除", Icon = "🗑" }
+        };
+    }
 }

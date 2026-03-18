@@ -8,9 +8,11 @@ public class JsonRepository<T> : Service.Interface.IRepository<T> where T : clas
     private readonly JsonSerializerOptions _jsonOptions;
     private T? _cache;
 
-    public JsonRepository(string filePath)
+    public JsonRepository()
     {
-        _filePath = filePath;
+        var basePath = AppDomain.CurrentDomain.BaseDirectory;
+        var typeName = typeof(T).Name;
+        _filePath = Path.Combine(basePath, $"{typeName}.json");
         _jsonOptions = new JsonSerializerOptions
         {
             WriteIndented = true,

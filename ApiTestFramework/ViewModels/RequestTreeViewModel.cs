@@ -122,6 +122,25 @@ public partial class RequestTreeViewModel : ObservableObject
         await SaveToDataAsync();
     }
 
+    [RelayCommand]
+    private async Task ExecuteMenuAction(object? parameter)
+    {
+        if (parameter is not TreeNodeMenuActionEnum action || SelectedNode == null)
+            return;
+
+        switch (action)
+        {
+            case TreeNodeMenuActionEnum.Delete:
+                await DeleteNode();
+                break;
+            case TreeNodeMenuActionEnum.Rename:
+            case TreeNodeMenuActionEnum.Duplicate:
+            case TreeNodeMenuActionEnum.MoveUp:
+            case TreeNodeMenuActionEnum.MoveDown:
+                break;
+        }
+    }
+
     private RequestFolder? FindParent(ObservableCollection<RequestNode> nodes, RequestNode target)
     {
         foreach (var node in nodes)

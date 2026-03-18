@@ -91,9 +91,11 @@
                         </StackPanel>
                     </Border>
 
-                    <TreeView Grid.Row="1" 
+                    <TreeView x:Name="RequestTreeView"
+                              Grid.Row="1" 
                               ItemsSource="{Binding TreeViewModel.Nodes}"
                               SelectedItemChanged="TreeView_SelectedItemChanged"
+                              ContextMenuOpening="TreeView_ContextMenuOpening"
                               Background="Transparent"
                               BorderThickness="0">
                         <TreeView.ItemContainerStyle>
@@ -103,6 +105,11 @@
                                 <Setter Property="Margin" Value="2"/>
                             </Style>
                         </TreeView.ItemContainerStyle>
+                        <TreeView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="🗑 删除" Click="DeleteMenuItem_Click"/>
+                            </ContextMenu>
+                        </TreeView.ContextMenu>
                     </TreeView>
                 </Grid>
             </Border>

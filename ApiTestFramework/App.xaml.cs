@@ -10,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Data;
-using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -34,9 +33,8 @@ public partial class App : Application
             {
                 services.Configure<AppOption>(context.Configuration);
 
-                var basePath = AppDomain.CurrentDomain.BaseDirectory;
-                services.AddSingleton<IRepository<GlobalSettings>>(sp => new JsonRepository<GlobalSettings>(Path.Combine(basePath, "settings.json")));
-                services.AddSingleton<IRepository<List<RequestTreeItem>>>(sp => new JsonRepository<List<RequestTreeItem>>(Path.Combine(basePath, "request_tree.json")));
+                services.AddSingleton<IRepository<GlobalSettings>, JsonRepository<GlobalSettings>>();
+                services.AddSingleton<IRepository<List<RequestTreeItem>>, JsonRepository<List<RequestTreeItem>>>();
 
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();
