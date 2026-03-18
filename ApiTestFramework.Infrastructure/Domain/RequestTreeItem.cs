@@ -35,7 +35,7 @@ public class RequestTreeItem
     /// <summary>
     /// 子节点（仅当 NodeType 为 Folder 时有效）
     /// </summary>
-    public List<RequestTreeItem> Children { get; set; } = new();
+    public List<RequestTreeItem> Children { get; set; } = [];
 
     /// <summary>
     /// 请求项（仅当 NodeType 为 Request 时有效）

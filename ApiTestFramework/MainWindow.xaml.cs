@@ -23,21 +23,26 @@ public partial class MainWindow : Window
 
     private void TreeView_ContextMenuOpening(object sender, ContextMenuEventArgs e)
     {
-        if (sender is TreeView treeView)
-        {
-            var selectedItem = treeView.SelectedItem as RequestNode;
-            if (selectedItem == null)
-            {
-                e.Handled = true;
-            }
-        }
-    }
+        if (DataContext is not MainViewModel viewModel) return;
 
-    private void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is MainViewModel viewModel && viewModel.TreeViewModel.SelectedNode != null)
+        viewModel.TreeViewModel.UpdateContextMenuItems();
+
+        TreeContextMenu.Items.Clear();
+
+        if (viewModel.TreeViewModel.ContextMenuItems.Count == 0)
         {
-            viewModel.TreeViewModel.DeleteNodeCommand.Execute(null);
+            e.Handled = true;
+            return;
+        }
+
+        foreach (var item in viewModel.TreeViewModel.ContextMenuItems)
+        {
+            var menuItem = new MenuItem
+            {
+                Header = item.Header,
+                Command = item.Command
+            };
+            TreeContextMenu.Items.Add(menuItem);
         }
     }
 

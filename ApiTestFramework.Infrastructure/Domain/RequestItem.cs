@@ -1,4 +1,4 @@
-﻿using ApiTestFramework.Infrastructure.Enum;
+using ApiTestFramework.Infrastructure.Enum;
 
 namespace ApiTestFramework.Infrastructure.Domain;
 
@@ -10,7 +10,7 @@ public class RequestItem
     /// <summary>
     /// 请求动词
     /// </summary>
-    public RequestVerbEnum RequestVerb { set; get; } = RequestVerbEnum.None;
+    public RequestVerbEnum RequestVerb { set; get; } = RequestVerbEnum.Get;
 
     /// <summary>
     /// 请求路径

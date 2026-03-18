@@ -106,9 +106,7 @@
                             </Style>
                         </TreeView.ItemContainerStyle>
                         <TreeView.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="🗑 删除" Click="DeleteMenuItem_Click"/>
-                            </ContextMenu>
+                            <ContextMenu x:Name="TreeContextMenu" />
                         </TreeView.ContextMenu>
                     </TreeView>
                 </Grid>
