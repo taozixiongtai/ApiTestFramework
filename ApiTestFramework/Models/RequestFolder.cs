@@ -1,4 +1,3 @@
-using ApiTestFramework.Infrastructure.Domain;
 using ApiTestFramework.Infrastructure.Enum;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
@@ -17,10 +16,10 @@ public partial class RequestFolder : RequestNode
 
     public override List<TreeNodeMenuItem> GetContextMenuItems()
     {
-        return new List<TreeNodeMenuItem>
-        {
+        return
+        [
             new() { Action = TreeNodeMenuActionEnum.Delete, Header = "删除", Icon = "🗑" }
-        };
+        ];
     }
 }
 
@@ -45,9 +44,9 @@ public partial class RequestItemNode : RequestNode
 
     public override List<TreeNodeMenuItem> GetContextMenuItems()
     {
-        return new List<TreeNodeMenuItem>
-        {
+        return
+        [
             new() { Action = TreeNodeMenuActionEnum.Delete, Header = "删除", Icon = "🗑" }
-        };
+        ];
     }
 }

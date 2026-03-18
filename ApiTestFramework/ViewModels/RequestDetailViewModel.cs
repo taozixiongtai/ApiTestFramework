@@ -1,4 +1,5 @@
 using ApiTestFramework.Infrastructure.Enum;
+using ApiTestFramework.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
@@ -7,6 +8,11 @@ namespace ApiTestFramework.ViewModels;
 
 public partial class RequestDetailViewModel : ObservableObject
 {
+    private RequestItemNode? _currentRequest;
+
+    [ObservableProperty]
+    private bool _hasRequest;
+
     [ObservableProperty]
     private string _requestName = string.Empty;
 
@@ -29,6 +35,57 @@ public partial class RequestDetailViewModel : ObservableObject
     private bool _isLoading;
 
     public Array AvailableVerbs => Enum.GetValues(typeof(RequestVerbEnum));
+
+    public void LoadRequest(RequestItemNode request)
+    {
+        _currentRequest = request;
+        HasRequest = true;
+        RequestName = request.Name;
+        RequestVerb = request.RequestVerb;
+        Path = request.Path;
+        Body = request.Body;
+        Headers.Clear();
+        foreach (var header in request.Headers)
+        {
+            Headers.Add(header);
+        }
+        Response = string.Empty;
+    }
+
+    public void Clear()
+    {
+        _currentRequest = null;
+        HasRequest = false;
+        RequestName = string.Empty;
+        RequestVerb = RequestVerbEnum.Get;
+        Path = string.Empty;
+        Body = string.Empty;
+        Headers.Clear();
+        Response = string.Empty;
+    }
+
+    public void SyncToNode()
+    {
+        if (_currentRequest == null)
+        {
+            return;
+        }
+
+        _currentRequest.Name = RequestName;
+        _currentRequest.RequestVerb = RequestVerb;
+        _currentRequest.Path = Path;
+        _currentRequest.Body = Body;
+        _currentRequest.Headers.Clear();
+        foreach (var header in Headers)
+        {
+            _currentRequest.Headers.Add(header);
+        }
+    }
+
+    public RequestItemNode? GetCurrentRequest()
+    {
+        return _currentRequest;
+    }
 
     [RelayCommand]
     private async Task SendRequest()

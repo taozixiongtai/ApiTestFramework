@@ -5,12 +5,6 @@ namespace ApiTestFramework.Infrastructure.Enum;
 public enum RequestVerbEnum
 {
     /// <summary>
-    /// 无
-    /// </summary>
-    [Description("无")]
-    None = 0,
-
-    /// <summary>
     /// GET 
     /// </summary>
     [Description("GET")]

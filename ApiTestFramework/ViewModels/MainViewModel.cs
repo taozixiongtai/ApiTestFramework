@@ -29,19 +29,20 @@ public partial class MainViewModel : ObservableObject
         DetailViewModel = new RequestDetailViewModel();
         SettingsViewModel = new SettingsViewModel(settingsRepository);
 
-        TreeViewModel.RequestSelected += OnRequestSelected;
+        TreeViewModel.NodeSelected += OnNodeSelected;
     }
 
-    private void OnRequestSelected(RequestItemNode request)
+    private void OnNodeSelected(RequestNode node)
     {
-        DetailViewModel.RequestName = request.Name;
-        DetailViewModel.RequestVerb = request.RequestVerb;
-        DetailViewModel.Path = request.Path;
-        DetailViewModel.Body = request.Body;
-        DetailViewModel.Headers.Clear();
-        foreach (var header in request.Headers)
+        DetailViewModel.SyncToNode();
+
+        if (node is RequestItemNode request)
         {
-            DetailViewModel.Headers.Add(header);
+            DetailViewModel.LoadRequest(request);
+        }
+        else
+        {
+            DetailViewModel.Clear();
         }
     }
 
@@ -63,5 +64,13 @@ public partial class MainViewModel : ObservableObject
         await SettingsViewModel.SaveAsync();
         IsSettingsOpen = false;
         MessageBox.Show("设置已保存", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    [RelayCommand]
+    private async Task SaveRequest()
+    {
+        DetailViewModel.SyncToNode();
+        await TreeViewModel.SaveToDataAsync();
+        MessageBox.Show("请求已保存", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 }

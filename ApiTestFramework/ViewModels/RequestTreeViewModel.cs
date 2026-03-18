@@ -19,7 +19,7 @@ public partial class RequestTreeViewModel : ObservableObject
     [ObservableProperty]
     private RequestNode? _selectedNode;
 
-    public event Action<RequestItemNode>? RequestSelected;
+    public event Action<RequestNode>? NodeSelected;
 
     public RequestTreeViewModel(IRepository<List<RequestTreeItem>> treeRepository)
     {
@@ -161,11 +161,7 @@ public partial class RequestTreeViewModel : ObservableObject
     public void OnNodeSelected(RequestNode node)
     {
         SelectedNode = node;
-
-        if (node is RequestItemNode requestNode)
-        {
-            RequestSelected?.Invoke(requestNode);
-        }
+        NodeSelected?.Invoke(node);
     }
 
     public async Task UpdateNodeAsync(RequestNode node)
