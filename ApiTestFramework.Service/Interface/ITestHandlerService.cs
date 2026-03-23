@@ -1,4 +1,4 @@
-﻿namespace ApiTestFramework.Service.Services;
+﻿namespace ApiTestFramework.Service.Interface;
 
 public interface ITestHandlerService
 {
