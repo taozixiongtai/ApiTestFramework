@@ -1,9 +1,9 @@
 ﻿using ApiTestFramework.Infrastructure.APP;
 using ApiTestFramework.Infrastructure.Helper;
 using ApiTestFramework.Infrastructure.JsonTransform;
-using ApiTestFramework.Service.Services;
+using ApiTestFramework.Service.Interface;
 
-namespace ApiTestFramework.Service.Interface;
+namespace ApiTestFramework.Service.Services;
 
 public class TestHandlerService(IDatabaseService databaseService, JsonTransformPipeline jsonTransformPipeline, IHttpClientService httpClientService) : ITestHandlerService
 {
