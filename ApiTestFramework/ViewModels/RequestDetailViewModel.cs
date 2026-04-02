@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Text;
+using System.Text.Json;
 
 namespace ApiTestFramework.ViewModels;
 
@@ -225,7 +226,7 @@ public partial class RequestDetailViewModel : ObservableObject
             sb.AppendLine();
             sb.AppendLine("异常信息:");
             sb.AppendLine(ex.Message);
-            
+
             if (ex.InnerException != null)
             {
                 sb.AppendLine();
@@ -239,7 +240,7 @@ public partial class RequestDetailViewModel : ObservableObject
         }
 
         Response = sb.ToString();
-        
+
         if (_currentRequest != null)
         {
             _currentRequest.Response = Response;
@@ -262,7 +263,7 @@ public partial class RequestDetailViewModel : ObservableObject
 
         try
         {
-            return System.Text.Json.JsonSerializer.Deserialize<object>(Body);
+            return JsonSerializer.Deserialize<object>(Body);
         }
         catch
         {
@@ -284,12 +285,12 @@ public partial class RequestDetailViewModel : ObservableObject
 
         try
         {
-            var doc = System.Text.Json.JsonDocument.Parse(json);
-            var options = new System.Text.Json.JsonSerializerOptions
+            var doc = JsonDocument.Parse(json);
+            var options = new JsonSerializerOptions
             {
                 WriteIndented = true
             };
-            return System.Text.Json.JsonSerializer.Serialize(doc, options);
+            return JsonSerializer.Serialize(doc, options);
         }
         catch
         {

@@ -43,7 +43,6 @@ public partial class MainViewModel : ObservableObject
     /// </remarks>
     public MainViewModel(
         IHttpClientService httpClientService,
-        IRepository<GlobalSettings> settingsRepository,
         IRepository<List<RequestTreeItem>> treeRepository)
     {
         TreeViewModel = new RequestTreeViewModel(treeRepository);
