@@ -1,9 +1,11 @@
+using ApiTestFramework.Components;
 using ApiTestFramework.Infrastructure.Domain;
 using ApiTestFramework.Models;
 using ApiTestFramework.Service.Interface;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace ApiTestFramework.ViewModels;
 
@@ -15,6 +17,7 @@ namespace ApiTestFramework.ViewModels;
 /// <list type="bullet">
 ///   <item><description>RequestTreeViewModel - 管理左侧请求树结构</description></item>
 ///   <item><description>RequestDetailViewModel - 管理右侧请求详情面板</description></item>
+///   <item><description>SeedDataDetailViewModel - 管理种子数据详情面板</description></item>
 /// </list>
 /// <para>采用 MVVM 模式，使用 CommunityToolkit.Mvvm 实现属性通知和命令绑定</para>
 /// </remarks>
@@ -33,20 +36,34 @@ public partial class MainViewModel : ObservableObject
     private RequestDetailViewModel _detailViewModel;
 
     /// <summary>
+    /// 种子数据详情视图模型，管理种子数据的编辑和执行
+    /// </summary>
+    [ObservableProperty]
+    private SeedDataDetailViewModel _seedDataDetailViewModel;
+
+    /// <summary>
+    /// 当前显示的详情视图
+    /// </summary>
+    [ObservableProperty]
+    private UserControl _currentDetailView = new EmptyControl();
+
+    /// <summary>
     /// 初始化 MainViewModel 的新实例
     /// </summary>
     /// <param name="httpClientService">HTTP 客户端服务，用于发送 HTTP 请求</param>
-    /// <param name="settingsRepository">全局设置数据仓储，用于持久化配置信息</param>
     /// <param name="treeRepository">请求树数据仓储，用于持久化树结构数据</param>
+    /// <param name="seedDataDetailViewModel">种子数据详情视图模型</param>
     /// <remarks>
     /// 构造函数会初始化所有子 ViewModel，并订阅树节点选择事件以实现联动
     /// </remarks>
     public MainViewModel(
         IHttpClientService httpClientService,
-        IRepository<List<RequestTreeItem>> treeRepository)
+        IRepository<List<RequestTreeItem>> treeRepository,
+        SeedDataDetailViewModel seedDataDetailViewModel)
     {
         TreeViewModel = new RequestTreeViewModel(treeRepository);
         DetailViewModel = new RequestDetailViewModel(httpClientService);
+        SeedDataDetailViewModel = seedDataDetailViewModel;
 
         TreeViewModel.NodeSelected += OnNodeSelected;
     }
@@ -60,20 +77,33 @@ public partial class MainViewModel : ObservableObject
     /// <list type="number">
     ///   <item><description>先将当前详情面板的数据同步回原节点（保存未保存的修改）</description></item>
     ///   <item><description>如果选中的是请求节点，加载其详情到右侧面板</description></item>
+    ///   <item><description>如果选中的是种子数据节点，加载种子数据编辑面板</description></item>
     ///   <item><description>如果选中的是文件夹节点，清空右侧面板</description></item>
+    ///   <item><description>根据节点类型动态加载对应的用户控件</description></item>
     /// </list>
     /// </remarks>
     private void OnNodeSelected(RequestNode node)
     {
         DetailViewModel.SyncToNode();
+        SeedDataDetailViewModel.SyncToNode();
 
         if (node is RequestItemNode request)
         {
             DetailViewModel.LoadRequest(request);
+            var control = new RequestDetailControl { DataContext = DetailViewModel };
+            CurrentDetailView = control;
+        }
+        else if (node is SeedDataNode seedData)
+        {
+            SeedDataDetailViewModel.LoadSeedData(seedData);
+            var control = new SeedDataDetailControl { DataContext = SeedDataDetailViewModel };
+            CurrentDetailView = control;
         }
         else
         {
             DetailViewModel.Clear();
+            SeedDataDetailViewModel.Clear();
+            CurrentDetailView = new EmptyControl();
         }
     }
 
@@ -93,7 +123,8 @@ public partial class MainViewModel : ObservableObject
     private async Task SaveRequest()
     {
         DetailViewModel.SyncToNode();
+        SeedDataDetailViewModel.SyncToNode();
         await TreeViewModel.SaveToDataAsync();
-        MessageBox.Show("请求已保存", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show("数据已保存", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 }

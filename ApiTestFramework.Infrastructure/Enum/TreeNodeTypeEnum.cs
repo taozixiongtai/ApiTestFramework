@@ -15,4 +15,10 @@ public enum TreeNodeTypeEnum
     /// </summary>
     [Description("请求")]
     Request = 1,
+
+    /// <summary>
+    /// 种子数据
+    /// </summary>
+    [Description("种子数据")]
+    Seed = 2,
 }

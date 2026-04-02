@@ -1,4 +1,4 @@
-using ApiTestFramework.Components;
+using ApiTestFramework.Infrastructure;
 using ApiTestFramework.Infrastructure.APP;
 using ApiTestFramework.Infrastructure.Domain;
 using ApiTestFramework.Infrastructure.JsonTransform;
@@ -37,12 +37,15 @@ public partial class App : Application
                 services.AddSingleton<IRepository<List<RequestTreeItem>>, JsonRepository<List<RequestTreeItem>>>();
 
                 services.AddSingleton<IHttpClientService, HttpClientService>();
-                services.AddSingleton<MainViewModel>();
-                services.AddSingleton<MainWindow>();
                 services.AddSingleton<IDatabaseService, DatabaseService>();
+                services.AddSingleton<ISeedDataService, SeedDataService>();
 
                 services.AddTransient<IJsonTransform, SnowIdTransfrom>();
                 services.AddTransient<JsonTransformPipeline>();
+
+                services.AddSingleton<SeedDataDetailViewModel>();
+                services.AddSingleton<MainViewModel>();
+                services.AddSingleton<MainWindow>();
             })
             .Build();
     }

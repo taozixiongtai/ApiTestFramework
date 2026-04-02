@@ -48,24 +48,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void AddHeader_Click(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is MainViewModel viewModel)
-        {
-            viewModel.DetailViewModel.AddHeader();
-        }
-    }
 
-    private void DeleteHeader_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button button && button.DataContext is KeyValuePair<string, string> header)
-        {
-            if (DataContext is MainViewModel viewModel)
-            {
-                viewModel.DetailViewModel.RemoveHeader(header);
-            }
-        }
-    }
 
     private void Settings_Click(object sender, RoutedEventArgs e)
     {

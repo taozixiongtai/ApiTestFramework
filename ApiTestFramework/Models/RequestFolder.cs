@@ -100,3 +100,37 @@ public partial class RequestItemNode : RequestNode
     [ObservableProperty]
     private bool _hasResponse;
 }
+
+/// <summary>
+/// 种子数据节点，表示一个种子数据文件
+/// </summary>
+/// <remarks>
+/// <para>种子数据节点存储种子文件的内容。</para>
+/// <para>继承自 RequestNode，扩展了种子数据相关的属性。</para>
+/// <para>当选中此类型节点时，右侧详情面板会显示种子数据的详细信息供用户编辑。</para>
+/// </remarks>
+public partial class SeedDataNode : RequestNode
+{
+    /// <summary>
+    /// 初始化 SeedDataNode 的新实例
+    /// </summary>
+    /// <remarks>
+    /// 构造函数自动将 NodeType 设置为 Seed
+    /// </remarks>
+    public SeedDataNode()
+    {
+        NodeType = TreeNodeTypeEnum.Seed;
+    }
+
+    /// <summary>
+    /// 种子文件内容
+    /// </summary>
+    [ObservableProperty]
+    private string _content = string.Empty;
+
+    /// <summary>
+    /// 文件名（包含扩展名）
+    /// </summary>
+    [ObservableProperty]
+    private string _fileName = string.Empty;
+}

@@ -205,6 +205,50 @@ public partial class RequestTreeViewModel : ObservableObject
     }
 
     /// <summary>
+    /// 添加新种子数据节点
+    /// </summary>
+    /// <returns>表示异步操作的任务</returns>
+    /// <remarks>
+    /// <para>添加位置规则：</para>
+    /// <list type="bullet">
+    ///   <item><description>未选中节点：添加到根级别</description></item>
+    ///   <item><description>选中文件夹：添加为该文件夹的子节点，并展开文件夹</description></item>
+    ///   <item><description>选中请求或种子数据：添加到该节点同级位置的下一个</description></item>
+    /// </list>
+    /// </remarks>
+    [RelayCommand]
+    private async Task AddSeedData()
+    {
+        var newSeedData = new SeedDataNode { Name = "新建种子数据" };
+
+        if (SelectedNode == null)
+        {
+            Nodes.Add(newSeedData);
+        }
+        else if (SelectedNode is RequestFolder folder)
+        {
+            folder.Children.Add(newSeedData);
+            folder.IsExpanded = true;
+        }
+        else if (SelectedNode is RequestItemNode or SeedDataNode)
+        {
+            var parent = FindParent(Nodes, SelectedNode);
+            if (parent != null)
+            {
+                var index = parent.Children.IndexOf(SelectedNode);
+                parent.Children.Insert(index + 1, newSeedData);
+            }
+            else
+            {
+                var index = Nodes.IndexOf(SelectedNode);
+                Nodes.Insert(index + 1, newSeedData);
+            }
+        }
+
+        await SaveToDataAsync();
+    }
+
+    /// <summary>
     /// 删除当前选中的节点
     /// </summary>
     /// <returns>表示异步操作的任务</returns>

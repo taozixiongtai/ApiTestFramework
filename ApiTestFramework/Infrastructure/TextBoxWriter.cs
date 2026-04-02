@@ -3,7 +3,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace ApiTestFramework.Components;
+namespace ApiTestFramework.Infrastructure;
 
 /// <summary>
 /// 将控制台输出到textbox中

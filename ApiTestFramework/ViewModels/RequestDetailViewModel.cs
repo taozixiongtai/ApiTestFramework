@@ -97,23 +97,26 @@ public partial class RequestDetailViewModel : ObservableObject
     /// 加载请求节点的数据到视图模型
     /// </summary>
     /// <param name="request">要加载的请求节点</param>
-    public void LoadRequest(RequestItemNode request)
+    public void LoadRequest(object request)
     {
-        _currentRequest = request;
-        HasRequest = true;
-        RequestName = request.Name;
-        RequestVerb = request.RequestVerb;
-        Path = request.Path;
-        Body = request.Body;
-        Headers.Clear();
-        foreach (var header in request.Headers)
+        if (request is RequestItemNode requestNode)
         {
-            Headers.Add(header);
+            _currentRequest = requestNode;
+            HasRequest = true;
+            RequestName = requestNode.Name;
+            RequestVerb = requestNode.RequestVerb;
+            Path = requestNode.Path;
+            Body = requestNode.Body;
+            Headers.Clear();
+            foreach (var header in requestNode.Headers)
+            {
+                Headers.Add(header);
+            }
+            Response = requestNode.Response;
+            StatusCode = requestNode.StatusCode;
+            ResponseTime = requestNode.ResponseTime;
+            HasResponse = requestNode.HasResponse;
         }
-        Response = request.Response;
-        StatusCode = request.StatusCode;
-        ResponseTime = request.ResponseTime;
-        HasResponse = request.HasResponse;
     }
 
     /// <summary>
