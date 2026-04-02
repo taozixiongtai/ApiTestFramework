@@ -49,7 +49,7 @@
                            VerticalAlignment="Center"/>
 
                 <Button Content="⚙ 设置" 
-                        Command="{Binding OpenSettingsCommand}"
+                        Click="Settings_Click"
                         HorizontalAlignment="Right"
                         Background="#3D3D3D"
                         Foreground="White"
@@ -243,78 +243,5 @@
                 </TextBlock>
             </Grid>
         </Grid>
-
-        <Border Grid.Row="0" Grid.RowSpan="2"
-                Background="#80000000"
-                Visibility="{Binding IsSettingsOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <Border Background="White" 
-                    Width="500" 
-                    Height="400" 
-                    CornerRadius="8"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Center">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <Border Grid.Row="0" Background="#2D2D2D" Padding="15,10" CornerRadius="8,8,0,0">
-                        <TextBlock Text="全局设置" Foreground="White" FontSize="16" FontWeight="Bold"/>
-                    </Border>
-
-                    <TabControl Grid.Row="1" Padding="10">
-                        <TabItem Header="Token">
-                            <TextBox Text="{Binding SettingsViewModel.Token, UpdateSourceTrigger=PropertyChanged}"
-                                     Padding="8"
-                                     Margin="0,10,0,0"
-                                     VerticalContentAlignment="Center"/>
-                        </TabItem>
-
-                        <TabItem Header="全局变量">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-
-                                <Button Grid.Row="0" Content="添加变量" Click="AddVariable_Click" HorizontalAlignment="Left" Margin="0,10" Padding="10,5"/>
-
-                                <DataGrid Grid.Row="1" 
-                                          ItemsSource="{Binding SettingsViewModel.GlobalVariables}"
-                                          AutoGenerateColumns="False"
-                                          CanUserAddRows="False">
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Header="变量名" Binding="{Binding Key, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
-                                        <DataGridTextColumn Header="变量值" Binding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
-                                        <DataGridTemplateColumn Width="Auto">
-                                            <DataGridTemplateColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <Button Content="删除" Click="DeleteVariable_Click" Background="#F44336" Foreground="White" BorderThickness="0" Padding="8,2"/>
-                                                </DataTemplate>
-                                            </DataGridTemplateColumn.CellTemplate>
-                                        </DataGridTemplateColumn>
-                                    </DataGrid.Columns>
-                                </DataGrid>
-                            </Grid>
-                        </TabItem>
-                    </TabControl>
-
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
-                        <Button Content="取消" 
-                                Command="{Binding CloseSettingsCommand}"
-                                Padding="15,8"
-                                Margin="0,0,10,0"/>
-                        <Button Content="保存" 
-                                Command="{Binding SaveSettingsCommand}"
-                                Background="#4CAF50"
-                                Foreground="White"
-                                BorderThickness="0"
-                                Padding="15,8"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-        </Border>
     </Grid>
 </Window>

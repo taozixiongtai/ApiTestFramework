@@ -36,6 +36,7 @@ public partial class App : Application
                 services.AddSingleton<IRepository<GlobalSettings>, JsonRepository<GlobalSettings>>();
                 services.AddSingleton<IRepository<List<RequestTreeItem>>, JsonRepository<List<RequestTreeItem>>>();
 
+                services.AddSingleton<IHttpClientService, HttpClientService>();
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();
                 services.AddSingleton<IDatabaseService, DatabaseService>();

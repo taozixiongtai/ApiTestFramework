@@ -1,4 +1,4 @@
-﻿using ApiTestFramework.Infrastructure.APP;
+using ApiTestFramework.Infrastructure.APP;
 using ApiTestFramework.Service.Interface;
 using Microsoft.Extensions.Options;
 using RestSharp;
@@ -96,6 +96,27 @@ public class HttpClientService : IHttpClientService
     public async Task<string> DeleteStringAsync(string url)
     {
         var request = await CreateRequest(url, Method.Delete);
+        var response = await _client.ExecuteAsync(request);
+        if (!response.IsSuccessful)
+        {
+            throw new Exception($"请求调用失败 {response.StatusCode}: {response.ErrorMessage}");
+        }
+        return response.Content ?? string.Empty;
+    }
+
+    /// <summary>
+    /// 发送 PATCH 请求并返回字符串
+    /// </summary>
+    /// <param name="url">请求 URL</param>
+    /// <param name="body">请求体对象</param>
+    /// <returns>响应字符串</returns>
+    public async Task<string> PatchStringAsync(string url, object body)
+    {
+        var request = await CreateRequest(url, Method.Patch);
+        if (body != null)
+        {
+            request.AddJsonBody(body);
+        }
         var response = await _client.ExecuteAsync(request);
         if (!response.IsSuccessful)
         {

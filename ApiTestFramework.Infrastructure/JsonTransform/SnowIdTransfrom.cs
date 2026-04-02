@@ -1,12 +1,11 @@
 ﻿using ApiTestFramework.Infrastructure.Helper;
 
-namespace ApiTestFramework.Infrastructure.JsonTransform
+namespace ApiTestFramework.Infrastructure.JsonTransform;
+
+public class SnowIdTransfrom : IJsonTransform
 {
-    public class SnowIdTransfrom : IJsonTransform
+    public string Transform(string json)
     {
-        public string Transform(string json)
-        {
-            return json.Replace($"#SnowId#", SnowflakeIdGenerator.NextId().ToString());
-        }
+        return json.Replace($"#SnowId#", SnowflakeIdGenerator.NextId().ToString());
     }
 }

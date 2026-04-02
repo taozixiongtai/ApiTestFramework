@@ -1,4 +1,6 @@
+using ApiTestFramework.Infrastructure.Domain;
 using ApiTestFramework.Models;
+using ApiTestFramework.Service.Interface;
 using ApiTestFramework.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
@@ -65,22 +67,23 @@ public partial class MainWindow : Window
         }
     }
 
-    private void AddVariable_Click(object sender, RoutedEventArgs e)
+    private void Settings_Click(object sender, RoutedEventArgs e)
     {
-        if (DataContext is MainViewModel viewModel)
+        var settingsWindow = new SettingsWindow
         {
-            viewModel.SettingsViewModel.AddVariable();
-        }
-    }
+            Owner = this
+        };
 
-    private void DeleteVariable_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button button && button.DataContext is KeyValuePair<string, string> variable)
+        var settingsRepository = App.AppHost?.Services.GetService(typeof(IRepository<GlobalSettings>));
+        if (settingsRepository is IRepository<GlobalSettings> repository)
         {
-            if (DataContext is MainViewModel viewModel)
-            {
-                viewModel.SettingsViewModel.RemoveVariable(variable);
-            }
+            var settingsViewModel = new SettingsViewModel(repository);
+            settingsWindow.DataContext = settingsViewModel;
+        }
+
+        if (settingsWindow.ShowDialog() == true)
+        {
+            MessageBox.Show("设置已保存", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

@@ -15,7 +15,6 @@ namespace ApiTestFramework.ViewModels;
 /// <list type="bullet">
 ///   <item><description>RequestTreeViewModel - 管理左侧请求树结构</description></item>
 ///   <item><description>RequestDetailViewModel - 管理右侧请求详情面板</description></item>
-///   <item><description>SettingsViewModel - 管理全局设置</description></item>
 /// </list>
 /// <para>采用 MVVM 模式，使用 CommunityToolkit.Mvvm 实现属性通知和命令绑定</para>
 /// </remarks>
@@ -34,32 +33,21 @@ public partial class MainViewModel : ObservableObject
     private RequestDetailViewModel _detailViewModel;
 
     /// <summary>
-    /// 设置视图模型，管理全局配置项
-    /// </summary>
-    [ObservableProperty]
-    private SettingsViewModel _settingsViewModel;
-
-    /// <summary>
-    /// 指示设置面板是否处于打开状态
-    /// </summary>
-    [ObservableProperty]
-    private bool _isSettingsOpen;
-
-    /// <summary>
     /// 初始化 MainViewModel 的新实例
     /// </summary>
+    /// <param name="httpClientService">HTTP 客户端服务，用于发送 HTTP 请求</param>
     /// <param name="settingsRepository">全局设置数据仓储，用于持久化配置信息</param>
     /// <param name="treeRepository">请求树数据仓储，用于持久化树结构数据</param>
     /// <remarks>
     /// 构造函数会初始化所有子 ViewModel，并订阅树节点选择事件以实现联动
     /// </remarks>
     public MainViewModel(
+        IHttpClientService httpClientService,
         IRepository<GlobalSettings> settingsRepository,
         IRepository<List<RequestTreeItem>> treeRepository)
     {
         TreeViewModel = new RequestTreeViewModel(treeRepository);
-        DetailViewModel = new RequestDetailViewModel();
-        SettingsViewModel = new SettingsViewModel(settingsRepository);
+        DetailViewModel = new RequestDetailViewModel(httpClientService);
 
         TreeViewModel.NodeSelected += OnNodeSelected;
     }
@@ -88,39 +76,6 @@ public partial class MainViewModel : ObservableObject
         {
             DetailViewModel.Clear();
         }
-    }
-
-    /// <summary>
-    /// 打开设置面板
-    /// </summary>
-    [RelayCommand]
-    private void OpenSettings()
-    {
-        IsSettingsOpen = true;
-    }
-
-    /// <summary>
-    /// 关闭设置面板
-    /// </summary>
-    [RelayCommand]
-    private void CloseSettings()
-    {
-        IsSettingsOpen = false;
-    }
-
-    /// <summary>
-    /// 保存全局设置
-    /// </summary>
-    /// <returns>表示异步操作的任务</returns>
-    /// <remarks>
-    /// 保存后会自动关闭设置面板并显示成功提示
-    /// </remarks>
-    [RelayCommand]
-    private async Task SaveSettings()
-    {
-        await SettingsViewModel.SaveAsync();
-        IsSettingsOpen = false;
-        MessageBox.Show("设置已保存", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     /// <summary>
