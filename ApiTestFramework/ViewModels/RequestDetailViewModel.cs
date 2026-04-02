@@ -72,9 +72,15 @@ public partial class RequestDetailViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoading;
 
-    /// <summary>
-    /// 可用的请求方法列表
-    /// </summary>
+    [ObservableProperty]
+    private int _statusCode;
+
+    [ObservableProperty]
+    private double _responseTime;
+
+    [ObservableProperty]
+    private bool _hasResponse;
+
     public Array AvailableVerbs => Enum.GetValues(typeof(RequestVerbEnum));
 
     /// <summary>
@@ -103,7 +109,10 @@ public partial class RequestDetailViewModel : ObservableObject
         {
             Headers.Add(header);
         }
-        Response = string.Empty;
+        Response = request.Response;
+        StatusCode = request.StatusCode;
+        ResponseTime = request.ResponseTime;
+        HasResponse = request.HasResponse;
     }
 
     /// <summary>
@@ -119,6 +128,9 @@ public partial class RequestDetailViewModel : ObservableObject
         Body = string.Empty;
         Headers.Clear();
         Response = string.Empty;
+        HasResponse = false;
+        StatusCode = 0;
+        ResponseTime = 0;
     }
 
     /// <summary>
@@ -193,6 +205,9 @@ public partial class RequestDetailViewModel : ObservableObject
             };
 
             var elapsed = (DateTime.Now - startTime).TotalMilliseconds;
+            StatusCode = 200;
+            ResponseTime = elapsed;
+            HasResponse = true;
             sb.AppendLine($"状态: 200 OK");
             sb.AppendLine($"耗时: {elapsed:F2}ms");
             sb.AppendLine();
@@ -202,6 +217,9 @@ public partial class RequestDetailViewModel : ObservableObject
         catch (Exception ex)
         {
             var elapsed = (DateTime.Now - startTime).TotalMilliseconds;
+            StatusCode = 0;
+            ResponseTime = elapsed;
+            HasResponse = true;
             sb.AppendLine($"状态: 请求失败");
             sb.AppendLine($"耗时: {elapsed:F2}ms");
             sb.AppendLine();
@@ -221,6 +239,14 @@ public partial class RequestDetailViewModel : ObservableObject
         }
 
         Response = sb.ToString();
+        
+        if (_currentRequest != null)
+        {
+            _currentRequest.Response = Response;
+            _currentRequest.StatusCode = StatusCode;
+            _currentRequest.ResponseTime = ResponseTime;
+            _currentRequest.HasResponse = HasResponse;
+        }
     }
 
     /// <summary>

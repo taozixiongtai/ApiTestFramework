@@ -87,4 +87,16 @@ public partial class RequestItemNode : RequestNode
     /// </remarks>
     [ObservableProperty]
     private ObservableCollection<KeyValuePair<string, string>> _headers = new();
+
+    [ObservableProperty]
+    private string _response = string.Empty;
+
+    [ObservableProperty]
+    private int _statusCode;
+
+    [ObservableProperty]
+    private double _responseTime;
+
+    [ObservableProperty]
+    private bool _hasResponse;
 }
