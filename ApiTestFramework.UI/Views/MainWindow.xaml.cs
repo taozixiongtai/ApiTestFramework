@@ -48,8 +48,6 @@ public partial class MainWindow : Window
         }
     }
 
-
-
     private void Settings_Click(object sender, RoutedEventArgs e)
     {
         var settingsWindow = new SettingsWindow
@@ -61,7 +59,7 @@ public partial class MainWindow : Window
         if (settingsRepository is IRepository<GlobalSettings> repository)
         {
             var settingsViewModel = new SettingsViewModel(repository);
-            settingsWindow.DataContext = settingsViewModel;
+            settingsWindow.SetViewModel(settingsViewModel);
         }
 
         if (settingsWindow.ShowDialog() == true)

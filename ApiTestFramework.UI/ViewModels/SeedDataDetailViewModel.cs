@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.IO;
 using System.Windows;
+using System.Collections.ObjectModel;
 using ApiTestFramework.UI.Views;
 
 namespace ApiTestFramework.UI.ViewModels;
@@ -12,13 +13,10 @@ namespace ApiTestFramework.UI.ViewModels;
 public partial class SeedDataDetailViewModel : ObservableObject
 {
     private readonly ISeedDataService _seedDataService;
-
     private SeedDataNode? _currentNode;
 
-    public SeedDataNode? CurrentNode => _currentNode;
-
     [ObservableProperty]
-    private string _fileContent = string.Empty;
+    private ObservableCollection<SeedFileItem> _seedFiles = new();
 
     [ObservableProperty]
     private bool _isExecuting;
@@ -32,54 +30,46 @@ public partial class SeedDataDetailViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void SelectFile()
+    private void AddFile()
     {
         var openFileDialog = new OpenFileDialog
         {
             Filter = "JSON 文件 (*.json)|*.json",
-            Title = "选择种子数据文件"
+            Title = "选择种子数据文件",
+            Multiselect = true
         };
 
-        if (openFileDialog.ShowDialog() == true && _currentNode != null)
+        if (openFileDialog.ShowDialog() == true && openFileDialog.FileNames != null)
         {
-            _currentNode.FilePath = openFileDialog.FileName;
-            _currentNode.FileName = Path.GetFileName(openFileDialog.FileName);
-            _currentNode.CheckFileExists();
-            LoadFileContent();
+            foreach (var filePath in openFileDialog.FileNames)
+            {
+                var fileItem = SeedFileItem.FromFile(filePath);
+                SeedFiles.Add(fileItem);
+            }
         }
     }
 
     [RelayCommand]
-    private async Task SaveFile()
+    private void DeleteFile(SeedFileItem fileItem)
     {
-        if (_currentNode == null || string.IsNullOrEmpty(_currentNode.FilePath))
-        {
-            MessageBox.Show("请先选择一个文件", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
-
-        if (!File.Exists(_currentNode.FilePath))
-        {
-            MessageBox.Show("文件不存在，无法保存", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-            return;
-        }
-
-        await File.WriteAllTextAsync(_currentNode.FilePath, FileContent);
-        MessageBox.Show("文件保存成功", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+        SeedFiles.Remove(fileItem);
     }
 
     [RelayCommand]
-    private async Task Execute()
+    private void EditFile(SeedFileItem fileItem)
     {
-        if (_currentNode == null || string.IsNullOrEmpty(_currentNode.FilePath))
-        {
-            MessageBox.Show("请先选择一个文件", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
+        var previewWindow = new FilePreviewWindow(fileItem.FilePath);
 
-        if (!File.Exists(_currentNode.FilePath))
+
+        previewWindow.ShowDialog();
+    }
+
+    [RelayCommand]
+    private async Task ExecuteAll()
+    {
+        if (SeedFiles.Count == 0)
         {
-            MessageBox.Show("文件不存在，无法执行", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show("请先添加文件", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -88,12 +78,8 @@ public partial class SeedDataDetailViewModel : ObservableObject
 
         try
         {
-            if (!string.IsNullOrWhiteSpace(FileContent))
-            {
-                await File.WriteAllTextAsync(_currentNode.FilePath, FileContent);
-            }
-
-            await _seedDataService.ExecuteSeedDataAsync(new[] { _currentNode.FilePath });
+            var filePaths = SeedFiles.Select(f => f.FilePath).ToArray();
+            await _seedDataService.ExecuteSeedDataAsync(filePaths);
             ResultMessage = "种子数据执行成功";
             MessageBox.Show("种子数据执行成功", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -108,54 +94,38 @@ public partial class SeedDataDetailViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private void PreviewFile()
-    {
-        if (_currentNode == null || string.IsNullOrEmpty(_currentNode.FilePath))
-        {
-            MessageBox.Show("请先选择一个文件", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
-
-        var previewWindow = new FilePreviewWindow(_currentNode.FilePath)
-        {
-            Owner = System.Windows.Application.Current.MainWindow
-        };
-
-        if (previewWindow.ShowDialog() == true)
-        {
-            _currentNode.CheckFileExists();
-            ResultMessage = $"文件 {_currentNode.FileName} 已保存";
-        }
-    }
-
-    private async void LoadFileContent()
-    {
-        if (_currentNode != null && File.Exists(_currentNode.FilePath))
-        {
-            FileContent = await File.ReadAllTextAsync(_currentNode.FilePath);
-        }
-        else
-        {
-            FileContent = string.Empty;
-        }
-    }
-
     public void LoadSeedData(SeedDataNode node)
     {
         _currentNode = node;
         node.CheckFileExists();
-        LoadFileContent();
+        LoadFiles();
     }
 
     public void Clear()
     {
         _currentNode = null;
-        FileContent = string.Empty;
+        SeedFiles.Clear();
         ResultMessage = string.Empty;
     }
 
     public void SyncToNode()
     {
+    }
+
+    private void LoadFiles()
+    {
+        SeedFiles.Clear();
+        if (_currentNode != null && !string.IsNullOrEmpty(_currentNode.FilePath))
+        {
+            var directory = Path.GetDirectoryName(_currentNode.FilePath);
+            if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
+            {
+                var files = Directory.GetFiles(directory, "*.json");
+                foreach (var file in files)
+                {
+                    SeedFiles.Add(SeedFileItem.FromFile(file));
+                }
+            }
+        }
     }
 }

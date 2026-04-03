@@ -22,6 +22,9 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<KeyValuePair<string, string>> _globalHeaders = new();
 
+    public event Action? Saved;
+    public event Action? Cancelled;
+
     public SettingsViewModel(IRepository<GlobalSettings> settingsRepository)
     {
         _settingsRepository = settingsRepository;
@@ -49,7 +52,7 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task SaveAsync()
+    private async Task Save()
     {
         var settings = await _settingsRepository.GetAsync();
         settings.Token = Token;
@@ -74,24 +77,35 @@ public partial class SettingsViewModel : ObservableObject
         }
 
         await _settingsRepository.SaveAsync(settings);
+        Saved?.Invoke();
     }
 
-    public void AddVariable()
+    [RelayCommand]
+    private void Cancel()
+    {
+        Cancelled?.Invoke();
+    }
+
+    [RelayCommand]
+    private void AddVariable()
     {
         GlobalVariables.Add(new KeyValuePair<string, string>("", ""));
     }
 
-    public void RemoveVariable(KeyValuePair<string, string> variable)
+    [RelayCommand]
+    private void RemoveVariable(KeyValuePair<string, string> variable)
     {
         GlobalVariables.Remove(variable);
     }
 
-    public void AddHeader()
+    [RelayCommand]
+    private void AddHeader()
     {
         GlobalHeaders.Add(new KeyValuePair<string, string>("", ""));
     }
 
-    public void RemoveHeader(KeyValuePair<string, string> header)
+    [RelayCommand]
+    private void RemoveHeader(KeyValuePair<string, string> header)
     {
         GlobalHeaders.Remove(header);
     }
