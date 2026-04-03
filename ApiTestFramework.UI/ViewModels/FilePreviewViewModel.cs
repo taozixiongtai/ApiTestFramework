@@ -1,5 +1,7 @@
+using ApiTestFramework.UI.Messages;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.IO;
 
 namespace ApiTestFramework.UI.ViewModels;
@@ -14,9 +16,6 @@ public partial class FilePreviewViewModel : ObservableObject
     [ObservableProperty]
     private string _fileContent = string.Empty;
 
-    public event Action? Saved;
-    public event Action? Cancelled;
-
     public FilePreviewViewModel(string filePath)
     {
         _filePath = filePath;
@@ -30,7 +29,7 @@ public partial class FilePreviewViewModel : ObservableObject
         try
         {
             await File.WriteAllTextAsync(_filePath, FileContent);
-            Saved?.Invoke();
+            WeakReferenceMessenger.Default.Send(new FileSavedMessage());
         }
         catch (Exception ex)
         {
@@ -42,6 +41,6 @@ public partial class FilePreviewViewModel : ObservableObject
     [RelayCommand]
     private void Cancel()
     {
-        Cancelled?.Invoke();
+        WeakReferenceMessenger.Default.Send(new FileCancelledMessage());
     }
 }

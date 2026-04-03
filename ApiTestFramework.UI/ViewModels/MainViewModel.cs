@@ -1,9 +1,11 @@
 using ApiTestFramework.UI.Controls;
 using ApiTestFramework.Domain.Entities;
 using ApiTestFramework.UI.Models;
+using ApiTestFramework.UI.Messages;
 using ApiTestFramework.Application.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -32,11 +34,13 @@ public partial class MainViewModel : ObservableObject
         DetailViewModel = new RequestDetailViewModel(httpClientService);
         SeedDataDetailViewModel = seedDataDetailViewModel;
 
-        TreeViewModel.NodeSelected += OnNodeSelected;
+        WeakReferenceMessenger.Default.Register<NodeSelectedMessage>(this, OnNodeSelected);
     }
 
-    private void OnNodeSelected(RequestNode node)
+    private void OnNodeSelected(object recipient, NodeSelectedMessage message)
     {
+        var node = message.Node;
+
         DetailViewModel.SyncToNode();
         SeedDataDetailViewModel.SyncToNode();
 
@@ -66,7 +70,19 @@ public partial class MainViewModel : ObservableObject
     {
         DetailViewModel.SyncToNode();
         SeedDataDetailViewModel.SyncToNode();
-        await TreeViewModel.SaveToDataAsync();
+        WeakReferenceMessenger.Default.Send(new SaveDataMessage());
         MessageBox.Show("数据已保存", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    [RelayCommand]
+    private void AddRequestInFolder()
+    {
+        WeakReferenceMessenger.Default.Send(new CreateRequestMessage());
+    }
+
+    [RelayCommand]
+    private void AddSeedDataInFolder()
+    {
+        WeakReferenceMessenger.Default.Send(new CreateSeedDataMessage());
     }
 }

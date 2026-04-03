@@ -2,10 +2,12 @@ using ApiTestFramework.Domain.Entities;
 using ApiTestFramework.Domain.Enums;
 using ApiTestFramework.Infrastructure.Extensions;
 using ApiTestFramework.UI.Mapper;
+using ApiTestFramework.UI.Messages;
 using ApiTestFramework.UI.Models;
 using ApiTestFramework.Application.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
@@ -26,12 +28,14 @@ public partial class RequestTreeViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<TreeNodeMenuItem> _contextMenuItems = new();
 
-    public event Action<RequestNode>? NodeSelected;
-
     public RequestTreeViewModel(IRepository<List<RequestTreeItem>> treeRepository)
     {
         _treeRepository = treeRepository;
         LoadFromData();
+
+        WeakReferenceMessenger.Default.Register<CreateRequestMessage>(this, OnCreateRequest);
+        WeakReferenceMessenger.Default.Register<CreateSeedDataMessage>(this, OnCreateSeedData);
+        WeakReferenceMessenger.Default.Register<SaveDataMessage>(this, OnSaveData);
     }
 
     private Dictionary<TreeNodeMenuActionEnum, ICommand> ActionCommands => _actionCommands ??= new Dictionary<TreeNodeMenuActionEnum, ICommand>
@@ -166,6 +170,55 @@ public partial class RequestTreeViewModel : ObservableObject
         await SaveToDataAsync();
     }
 
+    private async void OnCreateRequest(object recipient, CreateRequestMessage message)
+    {
+        RequestNode? newNode = null;
+
+        if (SelectedNode is RequestFolder folder)
+        {
+            var newRequest = new RequestItemNode { Name = "新建请求", RequestVerb = RequestVerbEnum.Get };
+            folder.Children.Add(newRequest);
+            folder.IsExpanded = true;
+            newNode = newRequest;
+        }
+        else
+        {
+            var newRequest = new RequestItemNode { Name = "新建请求", RequestVerb = RequestVerbEnum.Get };
+            Nodes.Add(newRequest);
+            newNode = newRequest;
+        }
+
+        await SaveToDataAsync();
+        WeakReferenceMessenger.Default.Send(new NodeSelectedMessage(newNode));
+    }
+
+    private async void OnCreateSeedData(object recipient, CreateSeedDataMessage message)
+    {
+        RequestNode? newNode = null;
+
+        if (SelectedNode is RequestFolder folder)
+        {
+            var newSeedData = new SeedDataNode { Name = "新建种子数据" };
+            folder.Children.Add(newSeedData);
+            folder.IsExpanded = true;
+            newNode = newSeedData;
+        }
+        else
+        {
+            var newSeedData = new SeedDataNode { Name = "新建种子数据" };
+            Nodes.Add(newSeedData);
+            newNode = newSeedData;
+        }
+
+        await SaveToDataAsync();
+        WeakReferenceMessenger.Default.Send(new NodeSelectedMessage(newNode));
+    }
+
+    private async void OnSaveData(object recipient, SaveDataMessage message)
+    {
+        await SaveToDataAsync();
+    }
+
     public void UpdateContextMenuItems()
     {
         ContextMenuItems.Clear();
@@ -204,7 +257,7 @@ public partial class RequestTreeViewModel : ObservableObject
     public void OnNodeSelected(RequestNode node)
     {
         SelectedNode = node;
-        NodeSelected?.Invoke(node);
+        WeakReferenceMessenger.Default.Send(new NodeSelectedMessage(node));
     }
 
     public async Task UpdateNodeAsync(RequestNode node)

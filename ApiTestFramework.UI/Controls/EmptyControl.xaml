@@ -6,10 +6,23 @@
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <TextBlock Text="请选择一个请求节点"
-                   FontSize="16"
-                   Foreground="#999"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"  Orientation="Horizontal">
+            
+                <Button Content="新增请求"
+                        Command="{Binding AddRequestInFolderCommand}"
+                        Background="#2196F3"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="20,10"
+                        Margin="0,0,10,0"
+                        Cursor="Hand"/>
+                <Button Content="新增种子数据"
+                        Command="{Binding AddSeedDataInFolderCommand}"
+                        Background="#4CAF50"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="20,10"
+                        Cursor="Hand"/>
+        </StackPanel>
     </Grid>
 </UserControl>

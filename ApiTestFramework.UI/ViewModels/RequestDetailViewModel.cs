@@ -227,12 +227,14 @@ public partial class RequestDetailViewModel : ObservableObject
         }
     }
 
-    public void AddHeader()
+    [RelayCommand]
+    private void AddHeader()
     {
         Headers.Add(new KeyValuePair<string, string>("", ""));
     }
 
-    public void RemoveHeader(KeyValuePair<string, string> header)
+    [RelayCommand]
+    private void RemoveHeader(KeyValuePair<string, string> header)
     {
         Headers.Remove(header);
     }
