@@ -9,10 +9,12 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:BooleanToColorConverter x:Key="BooleanToColorConverter"/>
     </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
@@ -20,17 +22,17 @@
 
         <Border Grid.Row="0" Background="#FAFAFA" Padding="10" BorderBrush="#DDD" BorderThickness="0,0,0,1">
             <StackPanel Orientation="Horizontal">
-                <Button Content="上传文件"
-                        Command="{Binding UploadFileCommand}"
+                <Button Content="选择文件"
+                        Command="{Binding SelectFileCommand}"
                         Background="#2196F3"
                         Foreground="White"
                         BorderThickness="0"
                         Padding="15,8"
                         Margin="0,0,5,0"
                         Cursor="Hand"/>
-                <Button Content="保存"
-                        Command="{Binding SaveFileCommand}"
-                        Background="#FF9800"
+                <Button Content="预览"
+                        Command="{Binding PreviewFileCommand}"
+                        Background="#00BCD4"
                         Foreground="White"
                         BorderThickness="0"
                         Padding="15,8"
@@ -38,15 +40,7 @@
                         Cursor="Hand"/>
                 <Button Content="执行"
                         Command="{Binding ExecuteCommand}"
-                        Background="#4CAF50"
-                        Foreground="White"
-                        BorderThickness="0"
-                        Padding="15,8"
-                        Margin="0,0,5,0"
-                        Cursor="Hand"/>
-                <Button Content="删除"
-                        Command="{Binding DeleteFileCommand}"
-                        Background="#F44336"
+                        Background="#FF9800"
                         Foreground="White"
                         BorderThickness="0"
                         Padding="15,8"
@@ -59,56 +53,32 @@
             </StackPanel>
         </Border>
 
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <Border Grid.Row="1" Background="#F5F5F5" Padding="10,8" BorderBrush="#DDD" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="当前文件: " VerticalAlignment="Center" FontWeight="Bold"/>
+                <TextBlock Text="{Binding CurrentNode.FileName, FallbackValue='未选择文件'}" 
+                           VerticalAlignment="Center" 
+                           Foreground="{Binding CurrentNode.FileExists, Converter={StaticResource BooleanToColorConverter}}"/>
+                <TextBlock Text=" ({Binding CurrentNode.FilePath, FallbackValue=''})" 
+                           VerticalAlignment="Center" 
+                           FontSize="10" 
+                           Foreground="#666" 
+                           Margin="5,0,0,0"/>
+            </StackPanel>
+        </Border>
 
-            <Border Grid.Column="0" Background="#F5F5F5" BorderBrush="#DDD" BorderThickness="0,0,1,0">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+        <TextBox Grid.Row="2"
+                 Text="{Binding FileContent, UpdateSourceTrigger=PropertyChanged}"
+                 AcceptsReturn="True"
+                 AcceptsTab="True"
+                 VerticalScrollBarVisibility="Auto"
+                 HorizontalScrollBarVisibility="Auto"
+                 FontFamily="Consolas"
+                 FontSize="12"
+                 Padding="10"
+                 BorderThickness="0"/>
 
-                    <Border Grid.Row="0" Background="#E8E8E8" Padding="10,8">
-                        <TextBlock Text="种子文件列表" FontWeight="Bold" FontSize="12"/>
-                    </Border>
-
-                    <ListBox Grid.Row="1"
-                             ItemsSource="{Binding SeedFiles}"
-                             SelectedItem="{Binding SelectedFile}"
-                             BorderThickness="0"
-                             Background="Transparent">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Margin="5,3">
-                                    <TextBlock Text="📄" Margin="0,0,5,0" FontSize="12"/>
-                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </Grid>
-            </Border>
-
-            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="#DDD"/>
-
-            <TextBox Grid.Column="2"
-                     Text="{Binding FileContent, UpdateSourceTrigger=PropertyChanged}"
-                     AcceptsReturn="True"
-                     AcceptsTab="True"
-                     VerticalScrollBarVisibility="Auto"
-                     HorizontalScrollBarVisibility="Auto"
-                     FontFamily="Consolas"
-                     FontSize="12"
-                     Padding="10"
-                     BorderThickness="0"/>
-        </Grid>
-
-        <Border Grid.Row="2" Background="#E8E8E8" Padding="10,5" BorderBrush="#DDD" BorderThickness="0,1,0,0">
+        <Border Grid.Row="3" Background="#E8E8E8" Padding="10,5" BorderBrush="#DDD" BorderThickness="0,1,0,0">
             <TextBlock Text="{Binding ResultMessage}" Foreground="#666" TextWrapping="Wrap"/>
         </Border>
     </Grid>

@@ -34,6 +34,16 @@ public static class DataMapper
                 }
             });
 
+        TypeAdapterConfig<RequestTreeItem, SeedDataNode>
+            .NewConfig()
+            .Map(dest => dest.FilePath, src => src.SeedDataItem != null ? src.SeedDataItem.FilePath : null)
+            .Map(dest => dest.FileName, src => src.SeedDataItem != null ? src.SeedDataItem.FileName : null)
+            .AfterMapping((src, dest) =>
+            {
+                dest.NodeType = TreeNodeTypeEnum.Seed;
+                dest.CheckFileExists();
+            });
+
         TypeAdapterConfig<RequestFolder, RequestTreeItem>
             .NewConfig()
             .Map(dest => dest.NodeType, src => TreeNodeTypeEnum.Folder)
@@ -56,6 +66,21 @@ public static class DataMapper
                 {
                     dest.RequestItem.Header[header.Key] = header.Value;
                 }
+            });
+
+        TypeAdapterConfig<SeedDataNode, RequestTreeItem>
+            .NewConfig()
+            .Map(dest => dest.NodeType, src => TreeNodeTypeEnum.Seed)
+            .Map(dest => dest.IsExpanded, src => false)
+            .Map(dest => dest.Children, src => new List<RequestTreeItem>())
+            .Map(dest => dest.RequestItem, src => (RequestItem?)null)
+            .AfterMapping((src, dest) =>
+            {
+                dest.SeedDataItem = new SeedDataItem
+                {
+                    FilePath = src.FilePath,
+                    FileName = src.FileName
+                };
             });
     }
 
@@ -84,6 +109,10 @@ public static class DataMapper
         else if (item.NodeType == TreeNodeTypeEnum.Request && item.RequestItem != null)
         {
             return item.Adapt<RequestItemNode>();
+        }
+        else if (item.NodeType == TreeNodeTypeEnum.Seed)
+        {
+            return item.Adapt<SeedDataNode>();
         }
 
         return null;
@@ -114,6 +143,10 @@ public static class DataMapper
         else if (node is RequestItemNode request)
         {
             return request.Adapt<RequestTreeItem>();
+        }
+        else if (node is SeedDataNode seedData)
+        {
+            return seedData.Adapt<RequestTreeItem>();
         }
 
         return null;

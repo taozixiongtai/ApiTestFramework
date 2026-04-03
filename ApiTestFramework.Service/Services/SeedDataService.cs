@@ -59,20 +59,32 @@ public class SeedDataService : ISeedDataService
     /// <summary>
     /// 执行种子数据插入到数据库
     /// </summary>
-    public async Task ExecuteSeedDataAsync()
+    /// <param name="filePaths">要执行的文件路径列表</param>
+    public async Task ExecuteSeedDataAsync(string[] filePaths)
     {
-        var allFiles = await FileHelper.ReadAllJsonFiles(_seedPath);
-
-        foreach (var file in allFiles)
+        foreach (var filePath in filePaths)
         {
-            var transformedJson = _jsonTransformPipeline.Execute(file.Value);
-            var tableRecords = JsonHelper.ParseDirectory(transformedJson);
-
-            foreach (var table in tableRecords)
+            if (File.Exists(filePath))
             {
-                _databaseService.InsertData(table.Key, table.Value);
+                var content = await File.ReadAllTextAsync(filePath);
+                var transformedJson = _jsonTransformPipeline.Execute(content);
+                var tableRecords = JsonHelper.ParseDirectory(transformedJson);
+
+                foreach (var table in tableRecords)
+                {
+                    _databaseService.InsertData(table.Key, table.Value);
+                }
             }
         }
+    }
+
+    /// <summary>
+    /// 执行种子数据插入到数据库（所有种子文件）
+    /// </summary>
+    public async Task ExecuteSeedDataAsync()
+    {
+        var files = Directory.GetFiles(_seedPath, "*.json");
+        await ExecuteSeedDataAsync(files);
     }
 
     /// <summary>

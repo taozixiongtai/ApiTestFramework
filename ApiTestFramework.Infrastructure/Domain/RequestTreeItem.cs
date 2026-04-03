@@ -41,4 +41,9 @@ public class RequestTreeItem
     /// 请求项（仅当 NodeType 为 Request 时有效）
     /// </summary>
     public RequestItem? RequestItem { get; set; }
+
+    /// <summary>
+    /// 种子数据项（仅当 NodeType 为 Seed 时有效）
+    /// </summary>
+    public SeedDataItem? SeedDataItem { get; set; }
 }

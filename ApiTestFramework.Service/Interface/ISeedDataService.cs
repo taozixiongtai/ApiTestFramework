@@ -21,6 +21,12 @@ public interface ISeedDataService
     /// <summary>
     /// 执行种子数据插入到数据库
     /// </summary>
+    /// <param name="filePaths">要执行的文件路径列表</param>
+    Task ExecuteSeedDataAsync(string[] filePaths);
+
+    /// <summary>
+    /// 执行种子数据插入到数据库（所有种子文件）
+    /// </summary>
     Task ExecuteSeedDataAsync();
 
     /// <summary>

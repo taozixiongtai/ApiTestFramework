@@ -95,6 +95,7 @@ public partial class MainViewModel : ObservableObject
         }
         else if (node is SeedDataNode seedData)
         {
+            seedData.CheckFileExists();
             SeedDataDetailViewModel.LoadSeedData(seedData);
             var control = new SeedDataDetailControl { DataContext = SeedDataDetailViewModel };
             CurrentDetailView = control;
