@@ -1,0 +1,85 @@
+<UserControl x:Class="ApiTestFramework.UI.Controls.SeedDataDetailControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:ApiTestFramework.UI.Controls"
+             xmlns:converters="clr-namespace:ApiTestFramework.UI.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:BooleanToColorConverter x:Key="BooleanToColorConverter"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#FAFAFA" Padding="10" BorderBrush="#DDD" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="选择文件"
+                        Command="{Binding SelectFileCommand}"
+                        Background="#2196F3"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="15,8"
+                        Margin="0,0,5,0"
+                        Cursor="Hand"/>
+                <Button Content="预览"
+                        Command="{Binding PreviewFileCommand}"
+                        Background="#00BCD4"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="15,8"
+                        Margin="0,0,5,0"
+                        Cursor="Hand"/>
+                <Button Content="执行"
+                        Command="{Binding ExecuteCommand}"
+                        Background="#FF9800"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="15,8"
+                        Cursor="Hand"/>
+                <ProgressBar Width="20"
+                             Height="20"
+                             Margin="10,0,0,0"
+                             IsIndeterminate="{Binding IsExecuting}"
+                             Visibility="{Binding IsExecuting, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Background="#F5F5F5" Padding="10,8" BorderBrush="#DDD" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="当前文件: " VerticalAlignment="Center" FontWeight="Bold"/>
+                <TextBlock Text="{Binding CurrentNode.FileName, FallbackValue='未选择文件'}" 
+                           VerticalAlignment="Center" 
+                           Foreground="{Binding CurrentNode.FileExists, Converter={StaticResource BooleanToColorConverter}}"/>
+                <TextBlock Text=" ({Binding CurrentNode.FilePath, FallbackValue=''})" 
+                           VerticalAlignment="Center" 
+                           FontSize="10" 
+                           Foreground="#666" 
+                           Margin="5,0,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <TextBox Grid.Row="2"
+                 Text="{Binding FileContent, UpdateSourceTrigger=PropertyChanged}"
+                 AcceptsReturn="True"
+                 AcceptsTab="True"
+                 VerticalScrollBarVisibility="Auto"
+                 HorizontalScrollBarVisibility="Auto"
+                 FontFamily="Consolas"
+                 FontSize="12"
+                 Padding="10"
+                 BorderThickness="0"/>
+
+        <Border Grid.Row="3" Background="#E8E8E8" Padding="10,5" BorderBrush="#DDD" BorderThickness="0,1,0,0">
+            <TextBlock Text="{Binding ResultMessage}" Foreground="#666" TextWrapping="Wrap"/>
+        </Border>
+    </Grid>
+</UserControl>

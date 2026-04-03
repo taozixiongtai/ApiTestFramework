@@ -1,0 +1,174 @@
+using ApiTestFramework.Infrastructure.Configuration;
+using ApiTestFramework.Application.Interfaces;
+using Microsoft.Extensions.Options;
+using RestSharp;
+using System.Text.Json;
+
+namespace ApiTestFramework.Application.Services;
+
+public class HttpClientService : IHttpClientService
+{
+    private readonly RestClient _client;
+    private string? _jwtToken;
+    private readonly AppOption _appOption;
+    private readonly Dictionary<string, string> _requestHeader;
+
+    public HttpClientService(IOptions<AppOption> options)
+    {
+        var clientOptions = new RestClientOptions
+        {
+            ThrowOnAnyError = false,
+            UserAgent = "MyWPFApp/1.0"
+        };
+
+
+        _appOption = options.Value;
+        _requestHeader = _appOption.RequestHeader ?? [];
+        _client = new RestClient(clientOptions);
+
+    }
+
+    public async Task<T> GetAsync<T>(string url)
+    {
+        var request = await CreateRequest(url, Method.Get);
+        var result = await _client.ExecuteAsync<T>(request);
+        return HandlerResult(result);
+    }
+
+    public async Task<string> GetStringAsync(string url)
+    {
+        var request = await CreateRequest(url, Method.Get);
+        var response = await _client.ExecuteAsync(request);
+        if (!response.IsSuccessful)
+        {
+            throw new Exception($"请求调用失败 {response.StatusCode}: {response.ErrorMessage}");
+        }
+        return response.Content ?? string.Empty;
+    }
+
+    public async Task<T> PostAsync<T>(string url, object body)
+    {
+        var request = await CreateRequest(url, Method.Post);
+        request.AddJsonBody(body);
+        var result = await _client.ExecuteAsync<T>(request);
+        return HandlerResult(result);
+    }
+
+    public async Task<string> PostStringAsync(string url, object body)
+    {
+        var request = await CreateRequest(url, Method.Post);
+        request.AddJsonBody(body);
+        var response = await _client.ExecuteAsync(request);
+        if (!response.IsSuccessful)
+        {
+            throw new Exception($"请求调用失败 {response.StatusCode}: {response.ErrorMessage}");
+        }
+        return response.Content ?? string.Empty;
+    }
+
+    public async Task<T> PutAsync<T>(string url, object body)
+    {
+        var request = await CreateRequest(url, Method.Put);
+        request.AddJsonBody(body);
+        var result = await _client.ExecuteAsync<T>(request);
+        return HandlerResult(result);
+    }
+
+    public async Task<string> PutStringAsync(string url, object body)
+    {
+        var request = await CreateRequest(url, Method.Put);
+        request.AddJsonBody(body);
+        var response = await _client.ExecuteAsync(request);
+        if (!response.IsSuccessful)
+        {
+            throw new Exception($"请求调用失败 {response.StatusCode}: {response.ErrorMessage}");
+        }
+        return response.Content ?? string.Empty;
+    }
+
+    public async Task<T> DeleteAsync<T>(string url)
+    {
+        var request = await CreateRequest(url, Method.Delete);
+        var result = await _client.ExecuteAsync<T>(request);
+        return HandlerResult(result);
+    }
+
+    public async Task<string> DeleteStringAsync(string url)
+    {
+        var request = await CreateRequest(url, Method.Delete);
+        var response = await _client.ExecuteAsync(request);
+        if (!response.IsSuccessful)
+        {
+            throw new Exception($"请求调用失败 {response.StatusCode}: {response.ErrorMessage}");
+        }
+        return response.Content ?? string.Empty;
+    }
+
+    public async Task<string> PatchStringAsync(string url, object body)
+    {
+        var request = await CreateRequest(url, Method.Patch);
+        if (body != null)
+        {
+            request.AddJsonBody(body);
+        }
+        var response = await _client.ExecuteAsync(request);
+        if (!response.IsSuccessful)
+        {
+            throw new Exception($"请求调用失败 {response.StatusCode}: {response.ErrorMessage}");
+        }
+        return response.Content ?? string.Empty;
+    }
+
+    private T HandlerResult<T>(RestResponse<T> response)
+    {
+        if (!response.IsSuccessful)
+        {
+            throw new Exception($"请求调用失败 {response.StatusCode}: {response.ErrorMessage}");
+        }
+        return response.Data!;
+    }
+
+    private async Task<RestRequest> CreateRequest(string url, Method method)
+    {
+        var request = new RestRequest(url, method);
+
+        if (_jwtToken is null)
+        {
+            await SetToken();
+        }
+
+        if (_requestHeader.Count > 0)
+        {
+            foreach (var header in _requestHeader)
+            {
+                request.AddHeader(header.Key, header.Value);
+            }
+        }
+
+        return request;
+    }
+
+    private async Task SetToken()
+    {
+        _jwtToken = string.Empty;
+        var tokenString = await PostAsync<string>(_appOption.LoginUrl, new
+        {
+            username = "",
+            password = ""
+        });
+
+
+        JsonDocument doc = JsonDocument.Parse(tokenString);
+        if (doc.RootElement.TryGetProperty("data", out JsonElement dataElement) &&
+           dataElement.TryGetProperty("accessToken", out JsonElement tokenElement))
+        {
+            _jwtToken = tokenElement.GetString();
+        }
+        else
+        {
+            throw new Exception("登录接口返回结果异常，无法获取到 Token");
+        }
+
+        _requestHeader.Add("Authorization", $"Bearer {_jwtToken}");
+    }
+}

@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -7,12 +6,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Mapster" Version="7.4.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.2" />
+    <PackageReference Include="RestSharp" Version="113.1.0" />
+    <PackageReference Include="SqlSugarCore" Version="5.1.4.214" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ApiTestFramework.Domain\ApiTestFramework.Domain.csproj" />
+    <ProjectReference Include="..\ApiTestFramework.Infrastructure\ApiTestFramework.Infrastructure.csproj" />
   </ItemGroup>
-
 </Project>
