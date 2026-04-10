@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using System.IO;
+using System.Windows;
 
 namespace ApiTestFramework.UI.ViewModels;
 
@@ -33,8 +34,8 @@ public partial class FilePreviewViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            System.Windows.MessageBox.Show($"保存失败: {ex.Message}", "错误", 
-                System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            MessageBox.Show($"保存失败: {ex.Message}", "错误", 
+             MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

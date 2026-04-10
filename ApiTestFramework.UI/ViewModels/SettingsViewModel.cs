@@ -17,10 +17,10 @@ public partial class SettingsViewModel : ObservableObject
     private string _baseUrl = string.Empty;
 
     [ObservableProperty]
-    private ObservableCollection<KeyValuePair<string, string>> _globalVariables = new();
+    private ObservableCollection<KeyValuePair<string, string>> _globalVariables = [];
 
     [ObservableProperty]
-    private ObservableCollection<KeyValuePair<string, string>> _globalHeaders = new();
+    private ObservableCollection<KeyValuePair<string, string>> _globalHeaders = [];
 
     public event Action? Saved;
     public event Action? Cancelled;

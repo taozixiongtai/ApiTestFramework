@@ -12,5 +12,5 @@ public partial class RequestFolder : RequestNode
     }
 
     [ObservableProperty]
-    private ObservableCollection<RequestNode> _children = new();
+    private ObservableCollection<RequestNode> _children = [];
 }
