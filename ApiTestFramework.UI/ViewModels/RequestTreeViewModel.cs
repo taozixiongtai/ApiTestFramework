@@ -16,18 +16,11 @@ namespace ApiTestFramework.UI.ViewModels;
 public partial class RequestTreeViewModel : ObservableObject
 {
     private readonly IRepository<List<RequestTreeItem>> _treeRepository;
-    private readonly IRepository<RecordedSessionCollection> _sessionRepository;
 
     private Dictionary<TreeNodeMenuActionEnum, ICommand>? _actionCommands;
 
     [ObservableProperty]
     private ObservableCollection<RequestNode> _nodes = new();
-
-    /// <summary>
-    /// 录制页的树节点集合（仅包含 Web 录制入口节点，与请求树分离）
-    /// </summary>
-    [ObservableProperty]
-    private ObservableCollection<RequestNode> _recordingNodes = new();
 
     [ObservableProperty]
     private RequestNode? _selectedNode;
@@ -35,15 +28,14 @@ public partial class RequestTreeViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<TreeNodeMenuItem> _contextMenuItems = new();
 
-    public RequestTreeViewModel(IRepository<List<RequestTreeItem>> treeRepository, IRepository<RecordedSessionCollection> sessionRepository)
+    public RequestTreeViewModel(IRepository<List<RequestTreeItem>> treeRepository)
     {
         _treeRepository = treeRepository;
-        _sessionRepository = sessionRepository;
         LoadFromData();
 
         WeakReferenceMessenger.Default.Register<CreateRequestMessage>(this, OnCreateRequest);
         WeakReferenceMessenger.Default.Register<SaveDataMessage>(this, OnSaveData);
-        WeakReferenceMessenger.Default.Register<RecordingSessionSavedMessage>(this, OnRecordingSessionSaved);
+        WeakReferenceMessenger.Default.Register<SaveRecordingToTreeMessage>(this, OnSaveRecordingToTree);
     }
 
     private Dictionary<TreeNodeMenuActionEnum, ICommand> ActionCommands => _actionCommands ??= new Dictionary<TreeNodeMenuActionEnum, ICommand>
@@ -55,29 +47,6 @@ public partial class RequestTreeViewModel : ObservableObject
     {
         var treeData = await _treeRepository.GetAsync();
         Nodes = DataMapper.ToViewModel(treeData);
-        await LoadSessionsAsync();
-    }
-
-    /// <summary>
-    /// 从仓储加载录制会话并填充到录制页的 Web 录制节点下
-    /// </summary>
-    /// <returns>表示异步操作的任务</returns>
-    private async Task LoadSessionsAsync()
-    {
-        var sessions = await _sessionRepository.GetAsync();
-
-        var recorderNode = RecordingNodes.OfType<WebRecorderNode>().FirstOrDefault();
-        if (recorderNode == null)
-        {
-            recorderNode = new WebRecorderNode();
-            RecordingNodes.Add(recorderNode);
-        }
-
-        recorderNode.Children.Clear();
-        foreach (var session in sessions)
-        {
-            recorderNode.Children.Add(new RecordingSessionNode { Session = session, Name = session.Name });
-        }
     }
 
     public async Task SaveToDataAsync()
@@ -153,31 +122,10 @@ public partial class RequestTreeViewModel : ObservableObject
     {
         if (SelectedNode == null) return;
 
-        // Web 录制入口节点不允许删除
-        if (SelectedNode is WebRecorderNode)
-        {
-            return;
-        }
-
-        // 录制会话节点从会话仓储中删除
-        if (SelectedNode is RecordingSessionNode sessionNode)
-        {
-            var sessions = await _sessionRepository.GetAsync();
-            sessions.RemoveAll(s => s.Id == sessionNode.Session.Id);
-            await _sessionRepository.SaveAsync(sessions);
-            await LoadSessionsAsync();
-            SelectedNode = null;
-            return;
-        }
-
         var parent = FindParent(Nodes, SelectedNode);
         if (parent is RequestFolder parentFolder)
         {
             parentFolder.Children.Remove(SelectedNode);
-        }
-        else if (parent is WebRecorderNode parentRecorder)
-        {
-            parentRecorder.Children.Remove(SelectedNode);
         }
         else
         {
@@ -215,9 +163,65 @@ public partial class RequestTreeViewModel : ObservableObject
         await SaveToDataAsync();
     }
 
-    private async void OnRecordingSessionSaved(object recipient, RecordingSessionSavedMessage message)
+    /// <summary>
+    /// 接收录制保存消息：将捕获的请求按顺序转换为请求树中的文件夹与请求节点
+    /// </summary>
+    private async void OnSaveRecordingToTree(object recipient, SaveRecordingToTreeMessage message)
     {
-        await LoadSessionsAsync();
+        var session = message.Session;
+        var folder = new RequestFolder { Name = session.Name, IsExpanded = true };
+
+        foreach (var item in session.Requests.OrderBy(r => r.Order))
+        {
+            folder.Children.Add(ToRequestNode(item));
+        }
+
+        Nodes.Add(folder);
+        await SaveToDataAsync();
+    }
+
+    /// <summary>
+    /// 将录制的 HTTP 请求转换为请求树节点（方法/URL/请求头/请求体按录制结果填充）
+    /// </summary>
+    /// <param name="item">录制的 HTTP 请求</param>
+    /// <returns>请求树节点</returns>
+    private static RequestItemNode ToRequestNode(RecordedHttpRequest item)
+    {
+        var node = new RequestItemNode
+        {
+            Name = $"{item.Order}. {item.Method} {GetUrlPath(item.Url)}",
+            RequestVerb = ToRequestVerb(item.Method),
+            Path = item.Url,
+            Body = item.Body
+        };
+
+        foreach (var header in item.Headers)
+        {
+            node.Headers.Add(new KeyValuePair<string, string>(header.Key, header.Value));
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// 将 HTTP 方法字符串解析为请求动词枚举（无法识别时默认 GET）
+    /// </summary>
+    private static RequestVerbEnum ToRequestVerb(string method) => method.ToUpperInvariant() switch
+    {
+        "GET" => RequestVerbEnum.Get,
+        "POST" => RequestVerbEnum.Post,
+        "PUT" => RequestVerbEnum.Put,
+        "DELETE" => RequestVerbEnum.Delete,
+        "PATCH" => RequestVerbEnum.Patch,
+        _ => RequestVerbEnum.Get
+    };
+
+    /// <summary>
+    /// 提取 URL 的路径部分用于节点命名（解析失败时返回原 URL）
+    /// </summary>
+    private static string GetUrlPath(string url)
+    {
+        return Uri.TryCreate(url, UriKind.Absolute, out var uri) ? uri.AbsolutePath : url;
     }
 
     public void UpdateContextMenuItems()
@@ -245,7 +249,6 @@ public partial class RequestTreeViewModel : ObservableObject
             var children = node switch
             {
                 RequestFolder folder => folder.Children,
-                WebRecorderNode recorder => recorder.Children,
                 _ => null
             };
 

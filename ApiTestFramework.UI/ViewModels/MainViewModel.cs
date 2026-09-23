@@ -29,47 +29,23 @@ public partial class MainViewModel : ObservableObject
     private UserControl _currentDetailView = new EmptyControl();
 
     /// <summary>
-    /// 录制页当前显示的视图
-    /// </summary>
-    [ObservableProperty]
-    private UserControl _currentRecordingDetailView = new EmptyControl();
-
-    /// <summary>
     /// 主界面当前选中的 Tab 页索引（0=请求，1=录制）
     /// </summary>
     [ObservableProperty]
     private int _selectedTabIndex;
 
-    /// <summary>
-    /// Web 录制控件缓存，避免切换节点时重新初始化 WebView2 丢失浏览器状态
-    /// </summary>
-    private WebRecorderControl? _webRecorderControl;
-
     public MainViewModel(
         IHttpClientService httpClientService,
         IRepository<List<RequestTreeItem>> treeRepository,
-        IRepository<RecordedSessionCollection> sessionRepository,
         WebRecorderViewModel webRecorderViewModel,
         ReplayViewModel replayViewModel)
     {
-        TreeViewModel = new RequestTreeViewModel(treeRepository, sessionRepository);
+        TreeViewModel = new RequestTreeViewModel(treeRepository);
         DetailViewModel = new RequestDetailViewModel(httpClientService);
         WebRecorderViewModel = webRecorderViewModel;
         ReplayViewModel = replayViewModel;
 
         WeakReferenceMessenger.Default.Register<NodeSelectedMessage>(this, OnNodeSelected);
-    }
-
-    /// <summary>
-    /// 首次切换到录制页时默认选中 Web 录制入口，直接进入录制视图
-    /// </summary>
-    partial void OnSelectedTabIndexChanged(int value)
-    {
-        if (value == 1 && CurrentRecordingDetailView is EmptyControl &&
-            TreeViewModel.RecordingNodes.OfType<WebRecorderNode>().FirstOrDefault() is { } recorderNode)
-        {
-            TreeViewModel.OnNodeSelected(recorderNode);
-        }
     }
 
     private void OnNodeSelected(object recipient, NodeSelectedMessage message)
@@ -85,17 +61,12 @@ public partial class MainViewModel : ObservableObject
             var control = new RequestDetailControl { DataContext = DetailViewModel };
             CurrentDetailView = control;
         }
-        else if (node is WebRecorderNode)
+        else if (node is RequestFolder folder)
         {
-            SelectedTabIndex = 1;
-            _webRecorderControl ??= new WebRecorderControl { DataContext = WebRecorderViewModel };
-            CurrentRecordingDetailView = _webRecorderControl;
-        }
-        else if (node is RecordingSessionNode sessionNode)
-        {
-            SelectedTabIndex = 1;
-            ReplayViewModel.LoadSession(sessionNode);
-            CurrentRecordingDetailView = new ReplayControl { DataContext = ReplayViewModel };
+            // 文件夹节点展示复现视图：按文件夹内顺序执行全部请求
+            SelectedTabIndex = 0;
+            ReplayViewModel.LoadFolder(folder);
+            CurrentDetailView = new ReplayControl { DataContext = ReplayViewModel };
         }
         else
         {

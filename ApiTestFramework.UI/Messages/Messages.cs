@@ -1,3 +1,4 @@
+using ApiTestFramework.Domain.Entities;
 using ApiTestFramework.UI.Models;
 
 namespace ApiTestFramework.UI.Messages;
@@ -11,6 +12,6 @@ public sealed record RequestCreatedMessage(RequestItemNode Request);
 public sealed record SaveDataMessage;
 
 /// <summary>
-/// 录制会话保存完成消息，通知左侧树刷新录制会话节点
+/// 录制保存消息，携带录制会话，由请求树接收并生成对应的请求文件夹
 /// </summary>
-public sealed record RecordingSessionSavedMessage;
+public sealed record SaveRecordingToTreeMessage(RecordedSession Session);

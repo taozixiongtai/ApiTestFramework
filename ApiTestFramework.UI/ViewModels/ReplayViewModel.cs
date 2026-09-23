@@ -1,5 +1,6 @@
 using ApiTestFramework.Application.Interfaces;
 using ApiTestFramework.Domain.Entities;
+using ApiTestFramework.Domain.Enums;
 using ApiTestFramework.UI.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -49,16 +50,46 @@ public partial class ReplayViewModel : ObservableObject
     }
 
     /// <summary>
-    /// 加载录制会话节点
+    /// 加载请求文件夹：将文件夹内的请求按现有顺序构建为待复现会话
     /// </summary>
-    /// <param name="node">录制会话节点</param>
-    public void LoadSession(RecordingSessionNode node)
+    /// <param name="folder">请求文件夹节点</param>
+    public void LoadFolder(RequestFolder folder)
     {
-        _currentSession = node.Session;
-        SessionName = node.Session.Name;
+        var session = new RecordedSession { Name = folder.Name };
+        var order = 1;
+
+        foreach (var child in folder.Children.OfType<RequestItemNode>())
+        {
+            session.Requests.Add(new RecordedHttpRequest
+            {
+                Order = order++,
+                Method = ToHttpMethod(child.RequestVerb),
+                Url = child.Path,
+                Headers = child.Headers.ToDictionary(h => h.Key, h => h.Value),
+                Body = child.Body
+            });
+        }
+
+        _currentSession = session;
+        SessionName = folder.Name;
         Results.Clear();
-        Summary = $"共 {node.Session.Requests.Count} 个请求，尚未执行复现";
+        Summary = session.Requests.Count == 0
+            ? "文件夹中没有请求"
+            : $"共 {session.Requests.Count} 个请求，尚未执行复现";
     }
+
+    /// <summary>
+    /// 将请求动词枚举转换为 HTTP 方法字符串
+    /// </summary>
+    private static string ToHttpMethod(RequestVerbEnum verb) => verb switch
+    {
+        RequestVerbEnum.Get => "GET",
+        RequestVerbEnum.Post => "POST",
+        RequestVerbEnum.Put => "PUT",
+        RequestVerbEnum.Delete => "DELETE",
+        RequestVerbEnum.Patch => "PATCH",
+        _ => "GET"
+    };
 
     /// <summary>
     /// 按执行顺序查找当前会话中对应的录制请求

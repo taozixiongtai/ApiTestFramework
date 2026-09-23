@@ -34,7 +34,6 @@ public partial class App : System.Windows.Application
 
                 services.AddSingleton<IRepository<GlobalSettings>, JsonRepository<GlobalSettings>>();
                 services.AddSingleton<IRepository<List<RequestTreeItem>>, JsonRepository<List<RequestTreeItem>>>();
-                services.AddSingleton<IRepository<RecordedSessionCollection>, JsonRepository<RecordedSessionCollection>>();
 
                 services.AddSingleton<IHttpClientService, HttpClientService>();
                 services.AddSingleton<IReplayService, ReplayService>();

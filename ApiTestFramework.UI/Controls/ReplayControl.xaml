@@ -22,7 +22,7 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="录制会话：" FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
+                    <TextBlock Text="请求文件夹：" FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding SessionName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,15,0"/>
                     <TextBlock Text="双击结果行查看请求详情" FontSize="11" Foreground="#999" VerticalAlignment="Center"/>
                 </StackPanel>

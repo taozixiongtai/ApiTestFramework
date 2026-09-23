@@ -1,5 +1,4 @@
 using ApiTestFramework.Application.Interfaces;
-using ApiTestFramework.Domain.Entities;
 using ApiTestFramework.UI.Infrastructure;
 using ApiTestFramework.UI.Messages;
 using ApiTestFramework.UI.Models;
@@ -19,7 +18,6 @@ namespace ApiTestFramework.UI.ViewModels;
 public partial class WebRecorderViewModel : ObservableObject
 {
     private readonly IWebRequestCaptureService _captureService;
-    private readonly IRepository<RecordedSessionCollection> _sessionRepository;
 
     /// <summary>
     /// 浏览器控件引用
@@ -33,15 +31,14 @@ public partial class WebRecorderViewModel : ObservableObject
     private string _address = string.Empty;
 
     /// <summary>
-    /// 会话名称
+    /// 保存到请求树时使用的文件夹名称
     /// </summary>
     [ObservableProperty]
     private string _sessionName = DefaultSessionName();
 
-    public WebRecorderViewModel(IWebRequestCaptureService captureService, IRepository<RecordedSessionCollection> sessionRepository)
+    public WebRecorderViewModel(IWebRequestCaptureService captureService)
     {
         _captureService = captureService;
-        _sessionRepository = sessionRepository;
     }
 
     /// <summary>
@@ -73,7 +70,7 @@ public partial class WebRecorderViewModel : ObservableObject
     }
 
     /// <summary>
-    /// 生成默认会话名（"录制会话 " + 时间戳）
+    /// 生成默认文件夹名（"录制会话 " + 时间戳）
     /// </summary>
     private static string DefaultSessionName() => "录制会话 " + DateTime.Now.ToString("yyyyMMdd-HHmmss");
 
@@ -123,20 +120,16 @@ public partial class WebRecorderViewModel : ObservableObject
     }
 
     /// <summary>
-    /// 保存录制会话到本地，并通知左侧树刷新
+    /// 将捕获的请求按顺序保存到请求树的文件夹中
     /// </summary>
     [RelayCommand]
-    private async Task Save()
+    private void Save()
     {
         if (CapturedItems.Count == 0) return;
 
         var session = _captureService.BuildSession(SessionName);
-        var list = await _sessionRepository.GetAsync();
-        list.Add(session);
-        await _sessionRepository.SaveAsync(list);
-
-        WeakReferenceMessenger.Default.Send(new RecordingSessionSavedMessage());
-        MessageBox.Show("录制会话已保存，可在左侧树\"Web 录制\"节点下查看", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+        WeakReferenceMessenger.Default.Send(new SaveRecordingToTreeMessage(session));
+        MessageBox.Show($"已将 {session.Requests.Count} 个请求保存到请求树文件夹\"{SessionName}\"", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
 
         _captureService.Clear();
         SessionName = DefaultSessionName();

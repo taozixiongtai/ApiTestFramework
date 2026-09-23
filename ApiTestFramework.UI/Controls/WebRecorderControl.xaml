@@ -65,7 +65,7 @@
                          VerticalContentAlignment="Center"
                          BorderBrush="#CCC"/>
 
-                <Button Grid.Column="7" Content="保存会话"
+                <Button Grid.Column="7" Content="保存为请求文件夹"
                         Command="{Binding SaveCommand}"
                         Background="#2196F3" Foreground="White"
                         BorderThickness="0" FontWeight="Bold"

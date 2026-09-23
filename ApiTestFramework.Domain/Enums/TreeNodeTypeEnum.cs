@@ -15,10 +15,4 @@ public enum TreeNodeTypeEnum
     /// </summary>
     [Description("种子数据")]
     Seed = 2,
-
-    [Description("Web 录制")]
-    WebRecorder = 3,
-
-    [Description("录制会话")]
-    RecordingSession = 4,
 }
