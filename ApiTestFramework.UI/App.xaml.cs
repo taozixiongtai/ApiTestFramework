@@ -35,15 +35,21 @@ public partial class App : System.Windows.Application
 
                 services.AddSingleton<IRepository<GlobalSettings>, JsonRepository<GlobalSettings>>();
                 services.AddSingleton<IRepository<List<RequestTreeItem>>, JsonRepository<List<RequestTreeItem>>>();
+                services.AddSingleton<IRepository<RecordedSessionCollection>, JsonRepository<RecordedSessionCollection>>();
 
                 services.AddSingleton<IHttpClientService, HttpClientService>();
                 services.AddSingleton<IDatabaseService, DatabaseService>();
                 services.AddSingleton<ISeedDataService, SeedDataService>();
+                services.AddSingleton<IReplayService, ReplayService>();
+
+                services.AddSingleton<IWebRequestCaptureService, WebRequestCaptureService>();
 
                 services.AddTransient<IJsonTransform, SnowIdTransfrom>();
                 services.AddTransient<JsonTransformPipeline>();
 
                 services.AddSingleton<SeedDataDetailViewModel>();
+                services.AddSingleton<WebRecorderViewModel>();
+                services.AddSingleton<ReplayViewModel>();
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();
             })

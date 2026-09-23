@@ -23,16 +23,32 @@ public partial class MainViewModel : ObservableObject
     private SeedDataDetailViewModel _seedDataDetailViewModel;
 
     [ObservableProperty]
+    private WebRecorderViewModel _webRecorderViewModel;
+
+    [ObservableProperty]
+    private ReplayViewModel _replayViewModel;
+
+    [ObservableProperty]
     private UserControl _currentDetailView = new EmptyControl();
+
+    /// <summary>
+    /// Web 录制控件缓存，避免切换节点时重新初始化 WebView2 丢失浏览器状态
+    /// </summary>
+    private WebRecorderControl? _webRecorderControl;
 
     public MainViewModel(
         IHttpClientService httpClientService,
         IRepository<List<RequestTreeItem>> treeRepository,
-        SeedDataDetailViewModel seedDataDetailViewModel)
+        IRepository<RecordedSessionCollection> sessionRepository,
+        SeedDataDetailViewModel seedDataDetailViewModel,
+        WebRecorderViewModel webRecorderViewModel,
+        ReplayViewModel replayViewModel)
     {
-        TreeViewModel = new RequestTreeViewModel(treeRepository);
+        TreeViewModel = new RequestTreeViewModel(treeRepository, sessionRepository);
         DetailViewModel = new RequestDetailViewModel(httpClientService);
         SeedDataDetailViewModel = seedDataDetailViewModel;
+        WebRecorderViewModel = webRecorderViewModel;
+        ReplayViewModel = replayViewModel;
 
         WeakReferenceMessenger.Default.Register<NodeSelectedMessage>(this, OnNodeSelected);
     }
@@ -56,6 +72,16 @@ public partial class MainViewModel : ObservableObject
             SeedDataDetailViewModel.LoadSeedData(seedData);
             var control = new SeedDataDetailControl { DataContext = SeedDataDetailViewModel };
             CurrentDetailView = control;
+        }
+        else if (node is WebRecorderNode)
+        {
+            _webRecorderControl ??= new WebRecorderControl { DataContext = WebRecorderViewModel };
+            CurrentDetailView = _webRecorderControl;
+        }
+        else if (node is RecordingSessionNode sessionNode)
+        {
+            ReplayViewModel.LoadSession(sessionNode);
+            CurrentDetailView = new ReplayControl { DataContext = ReplayViewModel };
         }
         else
         {

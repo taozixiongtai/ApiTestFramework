@@ -17,3 +17,8 @@ public sealed record SaveDataMessage;
 public sealed record FileSavedMessage;
 
 public sealed record FileCancelledMessage;
+
+/// <summary>
+/// 录制会话保存完成消息，通知左侧树刷新录制会话节点
+/// </summary>
+public sealed record RecordingSessionSavedMessage;

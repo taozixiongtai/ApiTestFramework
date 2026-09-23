@@ -16,6 +16,7 @@ namespace ApiTestFramework.UI.ViewModels;
 public partial class RequestTreeViewModel : ObservableObject
 {
     private readonly IRepository<List<RequestTreeItem>> _treeRepository;
+    private readonly IRepository<RecordedSessionCollection> _sessionRepository;
 
     private Dictionary<TreeNodeMenuActionEnum, ICommand>? _actionCommands;
 
@@ -28,14 +29,16 @@ public partial class RequestTreeViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<TreeNodeMenuItem> _contextMenuItems = new();
 
-    public RequestTreeViewModel(IRepository<List<RequestTreeItem>> treeRepository)
+    public RequestTreeViewModel(IRepository<List<RequestTreeItem>> treeRepository, IRepository<RecordedSessionCollection> sessionRepository)
     {
         _treeRepository = treeRepository;
+        _sessionRepository = sessionRepository;
         LoadFromData();
 
         WeakReferenceMessenger.Default.Register<CreateRequestMessage>(this, OnCreateRequest);
         WeakReferenceMessenger.Default.Register<CreateSeedDataMessage>(this, OnCreateSeedData);
         WeakReferenceMessenger.Default.Register<SaveDataMessage>(this, OnSaveData);
+        WeakReferenceMessenger.Default.Register<RecordingSessionSavedMessage>(this, OnRecordingSessionSaved);
     }
 
     private Dictionary<TreeNodeMenuActionEnum, ICommand> ActionCommands => _actionCommands ??= new Dictionary<TreeNodeMenuActionEnum, ICommand>
@@ -47,6 +50,29 @@ public partial class RequestTreeViewModel : ObservableObject
     {
         var treeData = await _treeRepository.GetAsync();
         Nodes = DataMapper.ToViewModel(treeData);
+        await LoadSessionsAsync();
+    }
+
+    /// <summary>
+    /// 从仓储加载录制会话并填充到 Web 录制节点下
+    /// </summary>
+    /// <returns>表示异步操作的任务</returns>
+    private async Task LoadSessionsAsync()
+    {
+        var sessions = await _sessionRepository.GetAsync();
+
+        var recorderNode = Nodes.OfType<WebRecorderNode>().FirstOrDefault();
+        if (recorderNode == null)
+        {
+            recorderNode = new WebRecorderNode();
+            Nodes.Add(recorderNode);
+        }
+
+        recorderNode.Children.Clear();
+        foreach (var session in sessions)
+        {
+            recorderNode.Children.Add(new RecordingSessionNode { Session = session, Name = session.Name });
+        }
     }
 
     public async Task SaveToDataAsync()
@@ -71,8 +97,7 @@ public partial class RequestTreeViewModel : ObservableObject
         }
         else if (SelectedNode is RequestItemNode)
         {
-            var parent = FindParent(Nodes, SelectedNode);
-            if (parent != null)
+            if (FindParent(Nodes, SelectedNode) is RequestFolder parent)
             {
                 var index = parent.Children.IndexOf(SelectedNode);
                 parent.Children.Insert(index + 1, newFolder);
@@ -103,8 +128,7 @@ public partial class RequestTreeViewModel : ObservableObject
         }
         else if (SelectedNode is RequestItemNode)
         {
-            var parent = FindParent(Nodes, SelectedNode);
-            if (parent != null)
+            if (FindParent(Nodes, SelectedNode) is RequestFolder parent)
             {
                 var index = parent.Children.IndexOf(SelectedNode);
                 parent.Children.Insert(index + 1, newRequest);
@@ -135,8 +159,7 @@ public partial class RequestTreeViewModel : ObservableObject
         }
         else if (SelectedNode is RequestItemNode or SeedDataNode)
         {
-            var parent = FindParent(Nodes, SelectedNode);
-            if (parent != null)
+            if (FindParent(Nodes, SelectedNode) is RequestFolder parent)
             {
                 var index = parent.Children.IndexOf(SelectedNode);
                 parent.Children.Insert(index + 1, newSeedData);
@@ -156,10 +179,31 @@ public partial class RequestTreeViewModel : ObservableObject
     {
         if (SelectedNode == null) return;
 
-        var parent = FindParent(Nodes, SelectedNode);
-        if (parent != null)
+        // Web 录制入口节点不允许删除
+        if (SelectedNode is WebRecorderNode)
         {
-            parent.Children.Remove(SelectedNode);
+            return;
+        }
+
+        // 录制会话节点从会话仓储中删除
+        if (SelectedNode is RecordingSessionNode sessionNode)
+        {
+            var sessions = await _sessionRepository.GetAsync();
+            sessions.RemoveAll(s => s.Id == sessionNode.Session.Id);
+            await _sessionRepository.SaveAsync(sessions);
+            await LoadSessionsAsync();
+            SelectedNode = null;
+            return;
+        }
+
+        var parent = FindParent(Nodes, SelectedNode);
+        if (parent is RequestFolder parentFolder)
+        {
+            parentFolder.Children.Remove(SelectedNode);
+        }
+        else if (parent is WebRecorderNode parentRecorder)
+        {
+            parentRecorder.Children.Remove(SelectedNode);
         }
         else
         {
@@ -219,6 +263,11 @@ public partial class RequestTreeViewModel : ObservableObject
         await SaveToDataAsync();
     }
 
+    private async void OnRecordingSessionSaved(object recipient, RecordingSessionSavedMessage message)
+    {
+        await LoadSessionsAsync();
+    }
+
     public void UpdateContextMenuItems()
     {
         ContextMenuItems.Clear();
@@ -237,19 +286,25 @@ public partial class RequestTreeViewModel : ObservableObject
         }
     }
 
-    private RequestFolder? FindParent(ObservableCollection<RequestNode> nodes, RequestNode target)
+    private RequestNode? FindParent(ObservableCollection<RequestNode> nodes, RequestNode target)
     {
         foreach (var node in nodes)
         {
-            if (node is RequestFolder folder)
+            var children = node switch
             {
-                if (folder.Children.Contains(target))
-                    return folder;
+                RequestFolder folder => folder.Children,
+                WebRecorderNode recorder => recorder.Children,
+                _ => null
+            };
 
-                var found = FindParent(folder.Children, target);
-                if (found != null)
-                    return found;
-            }
+            if (children == null) continue;
+
+            if (children.Contains(target))
+                return node;
+
+            var found = FindParent(children, target);
+            if (found != null)
+                return found;
         }
         return null;
     }
