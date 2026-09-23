@@ -34,13 +34,6 @@
             </StackPanel>
         </DataTemplate>
 
-        <DataTemplate DataType="{x:Type models:SeedDataNode}">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="🌱" Margin="0,0,5,0" FontSize="14"/>
-                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-            </StackPanel>
-        </DataTemplate>
-
         <HierarchicalDataTemplate DataType="{x:Type models:WebRecorderNode}" ItemsSource="{Binding Children}">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="🌐" Margin="0,0,5,0" FontSize="14"/>
@@ -81,69 +74,115 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="280" MinWidth="200"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*" MinWidth="400"/>
-            </Grid.ColumnDefinitions>
+        <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}">
 
-            <Border Grid.Column="0" Background="#F5F5F5" BorderBrush="#DDD" BorderThickness="0,0,1,0">
+            <!-- 请求页：请求/种子数据树 + 详情 -->
+            <TabItem Header="请求">
                 <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="280" MinWidth="200"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*" MinWidth="400"/>
+                    </Grid.ColumnDefinitions>
 
-                    <Border Grid.Row="0" Background="#E8E8E8" Padding="10,8">
-                        <StackPanel Orientation="Horizontal">
-                            <Button Content="新建文件夹" 
-                                    Command="{Binding TreeViewModel.AddFolderCommand}"
-                                    Background="Transparent"
-                                    BorderThickness="1"
-                                    BorderBrush="#CCC"
-                                    Padding="8,4"
-                                    Margin="0,0,5,0"/>
-                            <Button Content="新建请求" 
-                                    Command="{Binding TreeViewModel.AddRequestCommand}"
-                                    Background="Transparent"
-                                    BorderThickness="1"
-                                    BorderBrush="#CCC"
-                                    Padding="8,4"
-                                    Margin="0,0,5,0"/>
-                            <Button Content="新增种子数据" 
-                                    Command="{Binding TreeViewModel.AddSeedDataCommand}"
-                                    Background="Transparent"
-                                    BorderThickness="1"
-                                    BorderBrush="#CCC"
-                                    Padding="8,4"/>
-                        </StackPanel>
+                    <Border Grid.Column="0" Background="#F5F5F5" BorderBrush="#DDD" BorderThickness="0,0,1,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Border Grid.Row="0" Background="#E8E8E8" Padding="10,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="新建文件夹"
+                                            Command="{Binding TreeViewModel.AddFolderCommand}"
+                                            Background="Transparent"
+                                            BorderThickness="1"
+                                            BorderBrush="#CCC"
+                                            Padding="8,4"
+                                            Margin="0,0,5,0"/>
+                                    <Button Content="新建请求"
+                                            Command="{Binding TreeViewModel.AddRequestCommand}"
+                                            Background="Transparent"
+                                            BorderThickness="1"
+                                            BorderBrush="#CCC"
+                                            Padding="8,4"/>
+                                </StackPanel>
+                            </Border>
+
+                            <TreeView x:Name="RequestTreeView"
+                                      Grid.Row="1"
+                                      ItemsSource="{Binding TreeViewModel.Nodes}"
+                                      SelectedItemChanged="TreeView_SelectedItemChanged"
+                                      ContextMenuOpening="TreeView_ContextMenuOpening"
+                                      Background="Transparent"
+                                      BorderThickness="0">
+                                <TreeView.ItemContainerStyle>
+                                    <Style TargetType="TreeViewItem">
+                                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                                        <Setter Property="Padding" Value="5,3"/>
+                                        <Setter Property="Margin" Value="2"/>
+                                    </Style>
+                                </TreeView.ItemContainerStyle>
+                                <TreeView.ContextMenu>
+                                    <ContextMenu x:Name="TreeContextMenu" />
+                                </TreeView.ContextMenu>
+                            </TreeView>
+                        </Grid>
                     </Border>
 
-                    <TreeView x:Name="RequestTreeView"
-                              Grid.Row="1" 
-                              ItemsSource="{Binding TreeViewModel.Nodes}"
-                              SelectedItemChanged="TreeView_SelectedItemChanged"
-                              ContextMenuOpening="TreeView_ContextMenuOpening"
-                              Background="Transparent"
-                              BorderThickness="0">
-                        <TreeView.ItemContainerStyle>
-                            <Style TargetType="TreeViewItem">
-                                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
-                                <Setter Property="Padding" Value="5,3"/>
-                                <Setter Property="Margin" Value="2"/>
-                            </Style>
-                        </TreeView.ItemContainerStyle>
-                        <TreeView.ContextMenu>
-                            <ContextMenu x:Name="TreeContextMenu" />
-                        </TreeView.ContextMenu>
-                    </TreeView>
+                    <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="#DDD"/>
+
+                    <ContentControl Grid.Column="2" Content="{Binding CurrentDetailView}"/>
                 </Grid>
-            </Border>
+            </TabItem>
 
-            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="#DDD"/>
+            <!-- 录制页：Web 录制入口 + 会话树 + 录制/复现视图 -->
+            <TabItem Header="录制">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="280" MinWidth="200"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*" MinWidth="400"/>
+                    </Grid.ColumnDefinitions>
 
-            <ContentControl Grid.Column="2" Content="{Binding CurrentDetailView}"/>
-        </Grid>
+                    <Border Grid.Column="0" Background="#F5F5F5" BorderBrush="#DDD" BorderThickness="0,0,1,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Border Grid.Row="0" Background="#E8E8E8" Padding="10,8">
+                                <TextBlock Text="点击 🌐 Web 录制 开始新录制" FontSize="12" Foreground="#666"/>
+                            </Border>
+
+                            <TreeView x:Name="RecordingTreeView"
+                                      Grid.Row="1"
+                                      ItemsSource="{Binding TreeViewModel.RecordingNodes}"
+                                      SelectedItemChanged="TreeView_SelectedItemChanged"
+                                      ContextMenuOpening="TreeView_ContextMenuOpening"
+                                      Background="Transparent"
+                                      BorderThickness="0">
+                                <TreeView.ItemContainerStyle>
+                                    <Style TargetType="TreeViewItem">
+                                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                                        <Setter Property="Padding" Value="5,3"/>
+                                        <Setter Property="Margin" Value="2"/>
+                                    </Style>
+                                </TreeView.ItemContainerStyle>
+                                <TreeView.ContextMenu>
+                                    <ContextMenu x:Name="RecordingContextMenu" />
+                                </TreeView.ContextMenu>
+                            </TreeView>
+                        </Grid>
+                    </Border>
+
+                    <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="#DDD"/>
+
+                    <ContentControl Grid.Column="2" Content="{Binding CurrentRecordingDetailView}"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>

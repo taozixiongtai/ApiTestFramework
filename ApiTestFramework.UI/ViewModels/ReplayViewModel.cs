@@ -61,6 +61,16 @@ public partial class ReplayViewModel : ObservableObject
     }
 
     /// <summary>
+    /// 按执行顺序查找当前会话中对应的录制请求
+    /// </summary>
+    /// <param name="order">请求顺序号</param>
+    /// <returns>录制的请求，未找到时返回 null</returns>
+    public RecordedHttpRequest? FindRequest(int order)
+    {
+        return _currentSession?.Requests.FirstOrDefault(r => r.Order == order);
+    }
+
+    /// <summary>
     /// 执行复现：按录制顺序发送请求并逐条刷新结果
     /// </summary>
     [RelayCommand]

@@ -1,6 +1,5 @@
 using ApiTestFramework.UI.Infrastructure;
 using ApiTestFramework.Domain.Entities;
-using ApiTestFramework.Infrastructure.Json;
 using ApiTestFramework.Infrastructure.Configuration;
 using ApiTestFramework.UI.Mapper;
 using ApiTestFramework.Application.Interfaces;
@@ -38,16 +37,10 @@ public partial class App : System.Windows.Application
                 services.AddSingleton<IRepository<RecordedSessionCollection>, JsonRepository<RecordedSessionCollection>>();
 
                 services.AddSingleton<IHttpClientService, HttpClientService>();
-                services.AddSingleton<IDatabaseService, DatabaseService>();
-                services.AddSingleton<ISeedDataService, SeedDataService>();
                 services.AddSingleton<IReplayService, ReplayService>();
 
                 services.AddSingleton<IWebRequestCaptureService, WebRequestCaptureService>();
 
-                services.AddTransient<IJsonTransform, SnowIdTransfrom>();
-                services.AddTransient<JsonTransformPipeline>();
-
-                services.AddSingleton<SeedDataDetailViewModel>();
                 services.AddSingleton<WebRecorderViewModel>();
                 services.AddSingleton<ReplayViewModel>();
                 services.AddSingleton<MainViewModel>();

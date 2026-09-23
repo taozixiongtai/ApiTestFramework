@@ -26,10 +26,11 @@ public partial class MainWindow : Window
     private void TreeView_ContextMenuOpening(object sender, ContextMenuEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel) return;
+        if (sender is not TreeView { ContextMenu: ContextMenu menu }) return;
 
         viewModel.TreeViewModel.UpdateContextMenuItems();
 
-        TreeContextMenu.Items.Clear();
+        menu.Items.Clear();
 
         if (viewModel.TreeViewModel.ContextMenuItems.Count == 0)
         {
@@ -44,7 +45,7 @@ public partial class MainWindow : Window
                 Header = item.Header,
                 Command = item.Command
             };
-            TreeContextMenu.Items.Add(menuItem);
+            menu.Items.Add(menuItem);
         }
     }
 

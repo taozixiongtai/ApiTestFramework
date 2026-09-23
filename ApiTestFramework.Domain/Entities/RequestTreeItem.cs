@@ -17,6 +17,4 @@ public class RequestTreeItem
     public List<RequestTreeItem> Children { get; set; } = [];
 
     public RequestItem? RequestItem { get; set; }
-
-    public SeedDataItem? SeedDataItem { get; set; }
 }

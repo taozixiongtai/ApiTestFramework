@@ -1,3 +1,4 @@
+using ApiTestFramework.Domain.Entities;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 
@@ -55,4 +56,20 @@ public partial class CapturedRequestItem : ObservableObject
     /// 状态码显示文本（0 时显示 "-" 表示等待响应）
     /// </summary>
     public string StatusCodeText => StatusCode == 0 ? "-" : StatusCode.ToString();
+
+    /// <summary>
+    /// 从录制请求实体转换（复现结果查看详情时使用）
+    /// </summary>
+    /// <param name="request">录制请求实体</param>
+    /// <returns>视图模型条目</returns>
+    public static CapturedRequestItem FromDomain(RecordedHttpRequest request) => new()
+    {
+        Order = request.Order,
+        Method = request.Method,
+        Url = request.Url,
+        StatusCode = request.StatusCode,
+        Body = request.Body,
+        Headers = new ObservableCollection<KeyValuePair<string, string>>(request.Headers),
+        Timestamp = request.Timestamp
+    };
 }

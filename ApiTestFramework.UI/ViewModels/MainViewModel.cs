@@ -20,9 +20,6 @@ public partial class MainViewModel : ObservableObject
     private RequestDetailViewModel _detailViewModel;
 
     [ObservableProperty]
-    private SeedDataDetailViewModel _seedDataDetailViewModel;
-
-    [ObservableProperty]
     private WebRecorderViewModel _webRecorderViewModel;
 
     [ObservableProperty]
@@ -30,6 +27,18 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private UserControl _currentDetailView = new EmptyControl();
+
+    /// <summary>
+    /// 录制页当前显示的视图
+    /// </summary>
+    [ObservableProperty]
+    private UserControl _currentRecordingDetailView = new EmptyControl();
+
+    /// <summary>
+    /// 主界面当前选中的 Tab 页索引（0=请求，1=录制）
+    /// </summary>
+    [ObservableProperty]
+    private int _selectedTabIndex;
 
     /// <summary>
     /// Web 录制控件缓存，避免切换节点时重新初始化 WebView2 丢失浏览器状态
@@ -40,17 +49,27 @@ public partial class MainViewModel : ObservableObject
         IHttpClientService httpClientService,
         IRepository<List<RequestTreeItem>> treeRepository,
         IRepository<RecordedSessionCollection> sessionRepository,
-        SeedDataDetailViewModel seedDataDetailViewModel,
         WebRecorderViewModel webRecorderViewModel,
         ReplayViewModel replayViewModel)
     {
         TreeViewModel = new RequestTreeViewModel(treeRepository, sessionRepository);
         DetailViewModel = new RequestDetailViewModel(httpClientService);
-        SeedDataDetailViewModel = seedDataDetailViewModel;
         WebRecorderViewModel = webRecorderViewModel;
         ReplayViewModel = replayViewModel;
 
         WeakReferenceMessenger.Default.Register<NodeSelectedMessage>(this, OnNodeSelected);
+    }
+
+    /// <summary>
+    /// 首次切换到录制页时默认选中 Web 录制入口，直接进入录制视图
+    /// </summary>
+    partial void OnSelectedTabIndexChanged(int value)
+    {
+        if (value == 1 && CurrentRecordingDetailView is EmptyControl &&
+            TreeViewModel.RecordingNodes.OfType<WebRecorderNode>().FirstOrDefault() is { } recorderNode)
+        {
+            TreeViewModel.OnNodeSelected(recorderNode);
+        }
     }
 
     private void OnNodeSelected(object recipient, NodeSelectedMessage message)
@@ -58,35 +77,30 @@ public partial class MainViewModel : ObservableObject
         var node = message.Node;
 
         DetailViewModel.SyncToNode();
-        SeedDataDetailViewModel.SyncToNode();
 
         if (node is RequestItemNode request)
         {
+            SelectedTabIndex = 0;
             DetailViewModel.LoadRequest(request);
             var control = new RequestDetailControl { DataContext = DetailViewModel };
             CurrentDetailView = control;
         }
-        else if (node is SeedDataNode seedData)
-        {
-            seedData.CheckFileExists();
-            SeedDataDetailViewModel.LoadSeedData(seedData);
-            var control = new SeedDataDetailControl { DataContext = SeedDataDetailViewModel };
-            CurrentDetailView = control;
-        }
         else if (node is WebRecorderNode)
         {
+            SelectedTabIndex = 1;
             _webRecorderControl ??= new WebRecorderControl { DataContext = WebRecorderViewModel };
-            CurrentDetailView = _webRecorderControl;
+            CurrentRecordingDetailView = _webRecorderControl;
         }
         else if (node is RecordingSessionNode sessionNode)
         {
+            SelectedTabIndex = 1;
             ReplayViewModel.LoadSession(sessionNode);
-            CurrentDetailView = new ReplayControl { DataContext = ReplayViewModel };
+            CurrentRecordingDetailView = new ReplayControl { DataContext = ReplayViewModel };
         }
         else
         {
+            SelectedTabIndex = 0;
             DetailViewModel.Clear();
-            SeedDataDetailViewModel.Clear();
             CurrentDetailView = new EmptyControl();
         }
     }
@@ -95,7 +109,6 @@ public partial class MainViewModel : ObservableObject
     private async Task SaveRequest()
     {
         DetailViewModel.SyncToNode();
-        SeedDataDetailViewModel.SyncToNode();
         WeakReferenceMessenger.Default.Send(new SaveDataMessage());
         MessageBox.Show("数据已保存", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
     }
@@ -104,11 +117,5 @@ public partial class MainViewModel : ObservableObject
     private void AddRequestInFolder()
     {
         WeakReferenceMessenger.Default.Send(new CreateRequestMessage());
-    }
-
-    [RelayCommand]
-    private void AddSeedDataInFolder()
-    {
-        WeakReferenceMessenger.Default.Send(new CreateSeedDataMessage());
     }
 }

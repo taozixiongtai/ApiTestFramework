@@ -10,6 +10,9 @@ public enum TreeNodeTypeEnum
     [Description("请求")]
     Request = 1,
 
+    /// <summary>
+    /// 种子数据节点（功能已移除，仅为兼容旧持久化 JSON 中的 nodeType 数值保留，新数据不应再使用）
+    /// </summary>
     [Description("种子数据")]
     Seed = 2,
 

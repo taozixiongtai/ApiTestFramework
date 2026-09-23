@@ -23,6 +23,12 @@ public partial class RequestTreeViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<RequestNode> _nodes = new();
 
+    /// <summary>
+    /// 录制页的树节点集合（仅包含 Web 录制入口节点，与请求树分离）
+    /// </summary>
+    [ObservableProperty]
+    private ObservableCollection<RequestNode> _recordingNodes = new();
+
     [ObservableProperty]
     private RequestNode? _selectedNode;
 
@@ -36,7 +42,6 @@ public partial class RequestTreeViewModel : ObservableObject
         LoadFromData();
 
         WeakReferenceMessenger.Default.Register<CreateRequestMessage>(this, OnCreateRequest);
-        WeakReferenceMessenger.Default.Register<CreateSeedDataMessage>(this, OnCreateSeedData);
         WeakReferenceMessenger.Default.Register<SaveDataMessage>(this, OnSaveData);
         WeakReferenceMessenger.Default.Register<RecordingSessionSavedMessage>(this, OnRecordingSessionSaved);
     }
@@ -54,18 +59,18 @@ public partial class RequestTreeViewModel : ObservableObject
     }
 
     /// <summary>
-    /// 从仓储加载录制会话并填充到 Web 录制节点下
+    /// 从仓储加载录制会话并填充到录制页的 Web 录制节点下
     /// </summary>
     /// <returns>表示异步操作的任务</returns>
     private async Task LoadSessionsAsync()
     {
         var sessions = await _sessionRepository.GetAsync();
 
-        var recorderNode = Nodes.OfType<WebRecorderNode>().FirstOrDefault();
+        var recorderNode = RecordingNodes.OfType<WebRecorderNode>().FirstOrDefault();
         if (recorderNode == null)
         {
             recorderNode = new WebRecorderNode();
-            Nodes.Add(recorderNode);
+            RecordingNodes.Add(recorderNode);
         }
 
         recorderNode.Children.Clear();
@@ -144,37 +149,6 @@ public partial class RequestTreeViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task AddSeedData()
-    {
-        var newSeedData = new SeedDataNode { Name = "新建种子数据" };
-
-        if (SelectedNode == null)
-        {
-            Nodes.Add(newSeedData);
-        }
-        else if (SelectedNode is RequestFolder folder)
-        {
-            folder.Children.Add(newSeedData);
-            folder.IsExpanded = true;
-        }
-        else if (SelectedNode is RequestItemNode or SeedDataNode)
-        {
-            if (FindParent(Nodes, SelectedNode) is RequestFolder parent)
-            {
-                var index = parent.Children.IndexOf(SelectedNode);
-                parent.Children.Insert(index + 1, newSeedData);
-            }
-            else
-            {
-                var index = Nodes.IndexOf(SelectedNode);
-                Nodes.Insert(index + 1, newSeedData);
-            }
-        }
-
-        await SaveToDataAsync();
-    }
-
-    [RelayCommand]
     private async Task DeleteNode()
     {
         if (SelectedNode == null) return;
@@ -230,28 +204,6 @@ public partial class RequestTreeViewModel : ObservableObject
             var newRequest = new RequestItemNode { Name = "新建请求", RequestVerb = RequestVerbEnum.Get };
             Nodes.Add(newRequest);
             newNode = newRequest;
-        }
-
-        await SaveToDataAsync();
-        WeakReferenceMessenger.Default.Send(new NodeSelectedMessage(newNode));
-    }
-
-    private async void OnCreateSeedData(object recipient, CreateSeedDataMessage message)
-    {
-        RequestNode? newNode = null;
-
-        if (SelectedNode is RequestFolder folder)
-        {
-            var newSeedData = new SeedDataNode { Name = "新建种子数据" };
-            folder.Children.Add(newSeedData);
-            folder.IsExpanded = true;
-            newNode = newSeedData;
-        }
-        else
-        {
-            var newSeedData = new SeedDataNode { Name = "新建种子数据" };
-            Nodes.Add(newSeedData);
-            newNode = newSeedData;
         }
 
         await SaveToDataAsync();

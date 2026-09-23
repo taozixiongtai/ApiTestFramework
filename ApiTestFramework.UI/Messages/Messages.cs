@@ -6,17 +6,9 @@ public sealed record NodeSelectedMessage(RequestNode Node);
 
 public sealed record CreateRequestMessage;
 
-public sealed record CreateSeedDataMessage;
-
 public sealed record RequestCreatedMessage(RequestItemNode Request);
 
-public sealed record SeedDataCreatedMessage(SeedDataNode SeedData);
-
 public sealed record SaveDataMessage;
-
-public sealed record FileSavedMessage;
-
-public sealed record FileCancelledMessage;
 
 /// <summary>
 /// 录制会话保存完成消息，通知左侧树刷新录制会话节点
