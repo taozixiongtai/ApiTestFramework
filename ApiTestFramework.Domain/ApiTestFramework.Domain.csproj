@@ -4,4 +4,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SqlSugarCore" Version="5.1.4.214" />
+    <!-- 显式覆盖传递依赖（SqlSugarCore→Microsoft.Data.Sqlite→bundle 2.1.10，2.x 全线受 GHSA-2m69-gcr7-jv3q 影响，3.0.x 已修复） -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
+  </ItemGroup>
 </Project>

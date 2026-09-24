@@ -12,9 +12,9 @@ public static class EnumExtension
         return attribute?.Description ?? value.ToString();
     }
 
-    public static IEnumerable<(T Value, string Description)> GetAllDescriptions<T>() where T : struct, System.Enum
+    public static IEnumerable<(T Value, string Description)> GetAllDescriptions<T>() where T : struct, Enum
     {
-        foreach (T value in System.Enum.GetValues(typeof(T)))
+        foreach (T value in Enum.GetValues<T>())
         {
             yield return (value, value.GetDescription());
         }
