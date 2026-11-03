@@ -1,5 +1,5 @@
 using ApiTestFramework.UI.Controls;
-using ApiTestFramework.Domain.Entities;
+using ApiTestFramework.Infrastructure.Database;
 using ApiTestFramework.UI.Models;
 using ApiTestFramework.UI.Messages;
 using ApiTestFramework.Application.Interfaces;
@@ -20,29 +20,18 @@ public partial class MainViewModel : ObservableObject
     private RequestDetailViewModel _detailViewModel;
 
     [ObservableProperty]
-    private WebRecorderViewModel _webRecorderViewModel;
-
-    [ObservableProperty]
     private ReplayViewModel _replayViewModel;
 
     [ObservableProperty]
     private UserControl _currentDetailView = new EmptyControl();
 
-    /// <summary>
-    /// 主界面当前选中的 Tab 页索引（0=请求，1=录制）
-    /// </summary>
-    [ObservableProperty]
-    private int _selectedTabIndex;
-
     public MainViewModel(
         IHttpClientService httpClientService,
-        IRepository<List<RequestTreeItem>> treeRepository,
-        WebRecorderViewModel webRecorderViewModel,
+        ITreeRepository treeRepository,
         ReplayViewModel replayViewModel)
     {
         TreeViewModel = new RequestTreeViewModel(treeRepository);
         DetailViewModel = new RequestDetailViewModel(httpClientService);
-        WebRecorderViewModel = webRecorderViewModel;
         ReplayViewModel = replayViewModel;
 
         WeakReferenceMessenger.Default.Register<NodeSelectedMessage>(this, OnNodeSelected);
@@ -56,7 +45,6 @@ public partial class MainViewModel : ObservableObject
 
         if (node is RequestItemNode request)
         {
-            SelectedTabIndex = 0;
             DetailViewModel.LoadRequest(request);
             var control = new RequestDetailControl { DataContext = DetailViewModel };
             CurrentDetailView = control;
@@ -64,13 +52,11 @@ public partial class MainViewModel : ObservableObject
         else if (node is RequestFolder folder)
         {
             // 文件夹节点展示复现视图：按文件夹内顺序执行全部请求
-            SelectedTabIndex = 0;
             ReplayViewModel.LoadFolder(folder);
             CurrentDetailView = new ReplayControl { DataContext = ReplayViewModel };
         }
         else
         {
-            SelectedTabIndex = 0;
             DetailViewModel.Clear();
             CurrentDetailView = new EmptyControl();
         }

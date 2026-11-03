@@ -1,5 +1,5 @@
-using ApiTestFramework.Domain.Entities;
 using ApiTestFramework.Domain.Enums;
+using ApiTestFramework.Domain.Models;
 using ApiTestFramework.UI.Models;
 using Mapster;
 using System.Collections.ObjectModel;
@@ -10,14 +10,14 @@ public static class DataMapper
 {
     public static void Configure()
     {
-        TypeAdapterConfig<RequestTreeItem, RequestFolder>
+        TypeAdapterConfig<RequestTreeNode, RequestFolder>
             .NewConfig()
             .AfterMapping((src, dest) =>
             {
                 dest.NodeType = TreeNodeTypeEnum.Folder;
             });
 
-        TypeAdapterConfig<RequestTreeItem, RequestItemNode>
+        TypeAdapterConfig<RequestTreeNode, RequestItemNode>
             .NewConfig()
             .Map(dest => dest.RequestVerb, src => src.RequestItem != null ? src.RequestItem.RequestVerb : default)
             .Map(dest => dest.Path, src => src.RequestItem != null ? src.RequestItem.Path : null)
@@ -34,16 +34,16 @@ public static class DataMapper
                 }
             });
 
-        TypeAdapterConfig<RequestFolder, RequestTreeItem>
+        TypeAdapterConfig<RequestFolder, RequestTreeNode>
             .NewConfig()
             .Map(dest => dest.NodeType, src => TreeNodeTypeEnum.Folder)
             .Map(dest => dest.RequestItem, src => (RequestItem?)null);
 
-        TypeAdapterConfig<RequestItemNode, RequestTreeItem>
+        TypeAdapterConfig<RequestItemNode, RequestTreeNode>
             .NewConfig()
             .Map(dest => dest.NodeType, src => TreeNodeTypeEnum.Request)
             .Map(dest => dest.IsExpanded, src => false)
-            .Map(dest => dest.Children, src => new List<RequestTreeItem>())
+            .Map(dest => dest.Children, src => new List<RequestTreeNode>())
             .AfterMapping((src, dest) =>
             {
                 dest.RequestItem = new RequestItem
@@ -60,7 +60,7 @@ public static class DataMapper
 
     }
 
-    public static ObservableCollection<RequestNode> ToViewModel(List<RequestTreeItem> items)
+    public static ObservableCollection<RequestNode> ToViewModel(List<RequestTreeNode> items)
     {
         var result = new ObservableCollection<RequestNode>();
 
@@ -76,7 +76,7 @@ public static class DataMapper
         return result;
     }
 
-    public static RequestNode? ToViewModel(RequestTreeItem item)
+    public static RequestNode? ToViewModel(RequestTreeNode item)
     {
         if (item.NodeType == TreeNodeTypeEnum.Folder)
         {
@@ -90,9 +90,9 @@ public static class DataMapper
         return null;
     }
 
-    public static List<RequestTreeItem> ToDomain(ObservableCollection<RequestNode> nodes)
+    public static List<RequestTreeNode> ToDomain(ObservableCollection<RequestNode> nodes)
     {
-        var result = new List<RequestTreeItem>();
+        var result = new List<RequestTreeNode>();
 
         foreach (var node in nodes)
         {
@@ -106,15 +106,15 @@ public static class DataMapper
         return result;
     }
 
-    public static RequestTreeItem? ToDomain(RequestNode node)
+    public static RequestTreeNode? ToDomain(RequestNode node)
     {
         if (node is RequestFolder folder)
         {
-            return folder.Adapt<RequestTreeItem>();
+            return folder.Adapt<RequestTreeNode>();
         }
         else if (node is RequestItemNode request)
         {
-            return request.Adapt<RequestTreeItem>();
+            return request.Adapt<RequestTreeNode>();
         }
 
         return null;

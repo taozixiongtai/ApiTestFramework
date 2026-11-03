@@ -1,6 +1,5 @@
-using ApiTestFramework.Domain.Entities;
+using ApiTestFramework.Infrastructure.Database;
 using ApiTestFramework.UI.Models;
-using ApiTestFramework.Application.Interfaces;
 using ApiTestFramework.UI.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
@@ -56,8 +55,8 @@ public partial class MainWindow : Window
             Owner = this
         };
 
-        var settingsRepository = App.AppHost?.Services.GetService(typeof(IRepository<GlobalSettings>));
-        if (settingsRepository is IRepository<GlobalSettings> repository)
+        var settingsRepository = App.AppHost?.Services.GetService(typeof(ISettingsRepository));
+        if (settingsRepository is ISettingsRepository repository)
         {
             var settingsViewModel = new SettingsViewModel(repository);
             settingsWindow.SetViewModel(settingsViewModel);

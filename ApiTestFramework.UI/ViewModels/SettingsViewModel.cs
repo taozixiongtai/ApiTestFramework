@@ -1,5 +1,5 @@
-using ApiTestFramework.Domain.Entities;
-using ApiTestFramework.Application.Interfaces;
+using ApiTestFramework.Domain.Models;
+using ApiTestFramework.Infrastructure.Database;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
@@ -8,7 +8,7 @@ namespace ApiTestFramework.UI.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
-    private readonly IRepository<GlobalSettings> _settingsRepository;
+    private readonly ISettingsRepository _settingsRepository;
 
     [ObservableProperty]
     private string _token = string.Empty;
@@ -25,7 +25,7 @@ public partial class SettingsViewModel : ObservableObject
     public event Action? Saved;
     public event Action? Cancelled;
 
-    public SettingsViewModel(IRepository<GlobalSettings> settingsRepository)
+    public SettingsViewModel(ISettingsRepository settingsRepository)
     {
         _settingsRepository = settingsRepository;
         LoadFromData();

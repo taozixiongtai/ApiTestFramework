@@ -1,4 +1,4 @@
-using ApiTestFramework.Domain.Entities;
+using ApiTestFramework.Domain.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ApiTestFramework.UI.Models;

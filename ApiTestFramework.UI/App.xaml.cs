@@ -1,8 +1,7 @@
 using ApiTestFramework.UI.Infrastructure;
-using ApiTestFramework.Domain.Entities;
 using ApiTestFramework.Infrastructure.Configuration;
+using ApiTestFramework.Infrastructure.Database;
 using ApiTestFramework.UI.Mapper;
-using ApiTestFramework.Application.Database;
 using ApiTestFramework.Application.Interfaces;
 using ApiTestFramework.Application.Services;
 using ApiTestFramework.UI.ViewModels;
@@ -35,15 +34,12 @@ public partial class App : System.Windows.Application
 
                 services.AddSingleton(sp => sp.GetRequiredService<SqlSugarDbContext>().CreateClient());
                 services.AddSingleton<SqlSugarDbContext>();
-                services.AddSingleton<IRepository<GlobalSettings>, SqlSugarSettingsRepository>();
-                services.AddSingleton<IRepository<List<RequestTreeItem>>, SqlSugarTreeRepository>();
+                services.AddSingleton<ISettingsRepository, SqlSugarSettingsRepository>();
+                services.AddSingleton<ITreeRepository, SqlSugarTreeRepository>();
 
                 services.AddSingleton<IHttpClientService, HttpClientService>();
                 services.AddSingleton<IReplayService, ReplayService>();
 
-                services.AddSingleton<IWebRequestCaptureService, WebRequestCaptureService>();
-
-                services.AddSingleton<WebRecorderViewModel>();
                 services.AddSingleton<ReplayViewModel>();
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();

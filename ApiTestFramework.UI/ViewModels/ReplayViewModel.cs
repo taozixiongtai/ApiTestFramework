@@ -1,6 +1,5 @@
 using ApiTestFramework.Application.Interfaces;
-using ApiTestFramework.Domain.Entities;
-using ApiTestFramework.Domain.Enums;
+using ApiTestFramework.Domain.Models;
 using ApiTestFramework.UI.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -9,16 +8,16 @@ using System.Collections.ObjectModel;
 namespace ApiTestFramework.UI.ViewModels;
 
 /// <summary>
-/// 录制会话复现视图模型，按录制顺序重新执行已捕获的请求
+/// 请求文件夹复现视图模型，按现有顺序重新执行文件夹内的请求
 /// </summary>
 public partial class ReplayViewModel : ObservableObject
 {
     private readonly IReplayService _replayService;
 
     /// <summary>
-    /// 当前加载的录制会话
+    /// 当前加载的待复现请求列表
     /// </summary>
-    private RecordedSession? _currentSession;
+    private List<RequestItem>? _currentRequests;
 
     /// <summary>
     /// 会话名称
@@ -50,64 +49,41 @@ public partial class ReplayViewModel : ObservableObject
     }
 
     /// <summary>
-    /// 加载请求文件夹：将文件夹内的请求按现有顺序构建为待复现会话
+    /// 加载请求文件夹：将文件夹内的请求按现有顺序构建为待复现列表
     /// </summary>
     /// <param name="folder">请求文件夹节点</param>
     public void LoadFolder(RequestFolder folder)
     {
-        var session = new RecordedSession { Name = folder.Name };
-        var order = 1;
+        var requests = folder.Children.OfType<RequestItemNode>()
+            .Select(ToRequestItem)
+            .ToList();
 
-        foreach (var child in folder.Children.OfType<RequestItemNode>())
-        {
-            session.Requests.Add(new RecordedHttpRequest
-            {
-                Order = order++,
-                Method = ToHttpMethod(child.RequestVerb),
-                Url = child.Path,
-                Headers = child.Headers.ToDictionary(h => h.Key, h => h.Value),
-                Body = child.Body
-            });
-        }
-
-        _currentSession = session;
+        _currentRequests = requests;
         SessionName = folder.Name;
         Results.Clear();
-        Summary = session.Requests.Count == 0
+        Summary = requests.Count == 0
             ? "文件夹中没有请求"
-            : $"共 {session.Requests.Count} 个请求，尚未执行复现";
+            : $"共 {requests.Count} 个请求，尚未执行复现";
     }
 
     /// <summary>
-    /// 将请求动词枚举转换为 HTTP 方法字符串
+    /// 将请求树节点转换为领域请求实体
     /// </summary>
-    private static string ToHttpMethod(RequestVerbEnum verb) => verb switch
+    private static RequestItem ToRequestItem(RequestItemNode node) => new()
     {
-        RequestVerbEnum.Get => "GET",
-        RequestVerbEnum.Post => "POST",
-        RequestVerbEnum.Put => "PUT",
-        RequestVerbEnum.Delete => "DELETE",
-        RequestVerbEnum.Patch => "PATCH",
-        _ => "GET"
+        RequestVerb = node.RequestVerb,
+        Path = node.Path,
+        Body = node.Body,
+        Header = node.Headers.ToDictionary(h => h.Key, h => h.Value)
     };
 
     /// <summary>
-    /// 按执行顺序查找当前会话中对应的录制请求
-    /// </summary>
-    /// <param name="order">请求顺序号</param>
-    /// <returns>录制的请求，未找到时返回 null</returns>
-    public RecordedHttpRequest? FindRequest(int order)
-    {
-        return _currentSession?.Requests.FirstOrDefault(r => r.Order == order);
-    }
-
-    /// <summary>
-    /// 执行复现：按录制顺序发送请求并逐条刷新结果
+    /// 执行复现：按顺序发送请求并逐条刷新结果
     /// </summary>
     [RelayCommand]
     private async Task ExecuteReplay()
     {
-        if (_currentSession == null || IsExecuting) return;
+        if (_currentRequests == null || IsExecuting) return;
 
         IsExecuting = true;
         Results.Clear();
@@ -118,7 +94,7 @@ public partial class ReplayViewModel : ObservableObject
 
         try
         {
-            await _replayService.ExecuteAsync(_currentSession, r =>
+            await _replayService.ExecuteAsync(_currentRequests, r =>
             {
                 total++;
                 if (r.Success)

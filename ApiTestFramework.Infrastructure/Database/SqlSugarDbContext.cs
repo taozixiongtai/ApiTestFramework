@@ -3,7 +3,7 @@ using ApiTestFramework.Infrastructure.Configuration;
 using Microsoft.Extensions.Options;
 using SqlSugar;
 
-namespace ApiTestFramework.Application.Database;
+namespace ApiTestFramework.Infrastructure.Database;
 
 /// <summary>
 /// SqlSugar 数据库上下文工厂：按配置的 DbType 创建连接并完成 CodeFirst 建表
@@ -35,8 +35,8 @@ public class SqlSugarDbContext
             InitKeyType = InitKeyType.Attribute
         });
 
-        db.CodeFirst.InitTables<RequestTreeItem>();
-        db.CodeFirst.InitTables<GlobalSettings>();
+        db.CodeFirst.InitTables<RequestTreeItemEntity>();
+        db.CodeFirst.InitTables<GlobalSettingsEntity>();
         return db;
     }
 }

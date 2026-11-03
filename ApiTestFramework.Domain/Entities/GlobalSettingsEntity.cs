@@ -2,7 +2,10 @@ using SqlSugar;
 
 namespace ApiTestFramework.Domain.Entities;
 
-public class GlobalSettings
+/// <summary>
+/// 全局设置持久化实体（单行表，Id 恒为 1），与业务模型 GlobalSettings 分离
+/// </summary>
+public class GlobalSettingsEntity
 {
     /// <summary>固定主键（单行表，恒为 1）</summary>
     [SugarColumn(IsPrimaryKey = true)]

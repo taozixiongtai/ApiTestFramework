@@ -24,7 +24,6 @@
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="请求文件夹：" FontWeight="Bold" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding SessionName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,15,0"/>
-                    <TextBlock Text="双击结果行查看请求详情" FontSize="11" Foreground="#999" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <Button Grid.Column="2" Content="执行复现"
@@ -47,8 +46,7 @@
 
         <!-- 复现结果列表 -->
         <ListView x:Name="ResultListView" Grid.Row="1" ItemsSource="{Binding Results}"
-                  BorderThickness="0" Background="White"
-                  MouseDoubleClick="ResultList_MouseDoubleClick">
+                  BorderThickness="0" Background="White">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="#" Width="35" DisplayMemberBinding="{Binding Order}"/>

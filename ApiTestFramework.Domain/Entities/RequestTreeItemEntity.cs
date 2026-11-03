@@ -1,9 +1,13 @@
 using ApiTestFramework.Domain.Enums;
+using ApiTestFramework.Domain.Models;
 using SqlSugar;
 
 namespace ApiTestFramework.Domain.Entities;
 
-public class RequestTreeItem
+/// <summary>
+/// 请求树持久化实体（数据库扁平行），与业务模型 RequestTreeNode 分离
+/// </summary>
+public class RequestTreeItemEntity
 {
     [SugarColumn(IsPrimaryKey = true)]
     public string Id { get; set; } = string.Empty;
@@ -22,7 +26,7 @@ public class RequestTreeItem
     public int SortOrder { get; set; }
 
     [SugarColumn(IsIgnore = true)]
-    public List<RequestTreeItem> Children { get; set; } = [];
+    public List<RequestTreeItemEntity> Children { get; set; } = [];
 
     [SugarColumn(IsJson = true, IsNullable = true)]
     public RequestItem? RequestItem { get; set; }

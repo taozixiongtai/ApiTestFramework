@@ -1,4 +1,4 @@
-namespace ApiTestFramework.Domain.Entities;
+namespace ApiTestFramework.Domain.Models;
 
 /// <summary>
 /// 单个请求的复现结果

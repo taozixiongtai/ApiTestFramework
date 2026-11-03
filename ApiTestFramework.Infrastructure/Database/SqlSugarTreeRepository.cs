@@ -1,17 +1,17 @@
-using ApiTestFramework.Application.Interfaces;
 using ApiTestFramework.Domain.Entities;
-using ApiTestFramework.Domain.Enums;
+using ApiTestFramework.Domain.Models;
+using Mapster;
 using SqlSugar;
 
-namespace ApiTestFramework.Application.Database;
+namespace ApiTestFramework.Infrastructure.Database;
 
 /// <summary>
-/// 请求树数据库仓储：以扁平行存取 RequestTreeItem，读取时组装树、保存时全删全插
+/// 请求树数据库仓储：以扁平行存取 RequestTreeItemEntity，读取时组装为业务模型树、保存时全删全插
 /// </summary>
-public class SqlSugarTreeRepository : IRepository<List<RequestTreeItem>>
+public class SqlSugarTreeRepository : ITreeRepository
 {
     private readonly SqlSugarClient _db;
-    private List<RequestTreeItem>? _cache;
+    private List<RequestTreeNode>? _cache;
 
     public SqlSugarTreeRepository(SqlSugarClient db)
     {
@@ -19,34 +19,35 @@ public class SqlSugarTreeRepository : IRepository<List<RequestTreeItem>>
     }
 
     /// <summary>
-    /// 读取全部扁平行并组装为树（带内存缓存；跳过遗留 Seed 节点，孤儿节点按根处理）
+    /// 读取全部扁平行并组装为业务模型树（带内存缓存；孤儿节点按根处理）
     /// </summary>
-    public async Task<List<RequestTreeItem>> GetAsync()
+    public async Task<List<RequestTreeNode>> GetAsync()
     {
         if (_cache != null)
         {
             return _cache;
         }
 
-        var rows = await _db.Queryable<RequestTreeItem>()
+        var rows = await _db.Queryable<RequestTreeItemEntity>()
                 .OrderBy(r => r.SortOrder)
                 .ToListAsync();
 
-        var byId = rows.ToDictionary(r => r.Id);
-        var roots = new List<RequestTreeItem>();
+        var nodesById = rows.ToDictionary(r => r.Id, r => r.Adapt<RequestTreeNode>());
+        var roots = new List<RequestTreeNode>();
         foreach (var row in rows)
         {
             // 父节点存在则挂到其 Children（行已按 SortOrder 排序，组内顺序保持），否则视为根节点（含孤儿节点）
-            if (row.ParentId != null && byId.TryGetValue(row.ParentId, out var parent) && parent != row)
+            var node = nodesById[row.Id];
+            if (row.ParentId != null && nodesById.TryGetValue(row.ParentId, out var parent) && parent != node)
             {
-                parent.Children.Add(row);
+                parent.Children.Add(node);
             }
             else
             {
-                roots.Add(row);
+                roots.Add(node);
             }
         }
-         
+
         _cache = roots;
         return _cache;
     }
@@ -54,14 +55,14 @@ public class SqlSugarTreeRepository : IRepository<List<RequestTreeItem>>
     /// <summary>
     /// 保存请求树：展平为行后在事务内全删全插，成功后更新缓存
     /// </summary>
-    public async Task SaveAsync(List<RequestTreeItem> entity)
+    public async Task SaveAsync(List<RequestTreeNode> tree)
     {
-        var rows = new List<RequestTreeItem>();
-        Flatten(entity, null, rows);
+        var rows = new List<RequestTreeItemEntity>();
+        Flatten(tree, null, rows);
 
         var result = await _db.Ado.UseTranAsync(async () =>
         {
-            await _db.Deleteable<RequestTreeItem>().ExecuteCommandAsync();
+            await _db.Deleteable<RequestTreeItemEntity>().ExecuteCommandAsync();
             await _db.Insertable(rows).ExecuteCommandAsync();
         });
         if (!result.IsSuccess)
@@ -69,7 +70,7 @@ public class SqlSugarTreeRepository : IRepository<List<RequestTreeItem>>
             throw new InvalidOperationException($"保存请求树失败：{result.ErrorMessage}", result.ErrorException);
         }
 
-        _cache = entity;
+        _cache = tree;
     }
 
     /// <summary>
@@ -77,22 +78,22 @@ public class SqlSugarTreeRepository : IRepository<List<RequestTreeItem>>
     /// </summary>
     public async Task ResetAsync()
     {
-        await _db.Deleteable<RequestTreeItem>().ExecuteCommandAsync();
-        _cache = new List<RequestTreeItem>();
+        await _db.Deleteable<RequestTreeItemEntity>().ExecuteCommandAsync();
+        _cache = new List<RequestTreeNode>();
     }
 
     /// <summary>
-    /// 递归展平树节点为待落库的独立行对象（记录 ParentId 与同级 SortOrder，从 0 开始；跳过遗留 Seed 节点，不复用原对象以避免修改内存树）
+    /// 递归展平业务模型树节点为待落库的实体行（记录 ParentId 与同级 SortOrder，从 0 开始；不复用原对象以避免修改内存树）
     /// </summary>
     /// <param name="nodes">当前层节点列表</param>
     /// <param name="parentId">父节点 Id（根层为 null）</param>
     /// <param name="result">输出的行集合</param>
-    private static void Flatten(IList<RequestTreeItem> nodes, string? parentId, List<RequestTreeItem> result)
+    private static void Flatten(IList<RequestTreeNode> nodes, string? parentId, List<RequestTreeItemEntity> result)
     {
         var order = 0;
         foreach (var node in nodes)
         {
-            result.Add(new RequestTreeItem
+            result.Add(new RequestTreeItemEntity
             {
                 Id = node.Id,
                 Name = node.Name,

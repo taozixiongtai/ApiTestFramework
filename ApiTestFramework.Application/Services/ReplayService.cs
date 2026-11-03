@@ -1,12 +1,12 @@
 using ApiTestFramework.Application.Interfaces;
-using ApiTestFramework.Domain.Entities;
+using ApiTestFramework.Domain.Models;
 using System.Diagnostics;
 using System.Text.Json;
 
 namespace ApiTestFramework.Application.Services;
 
 /// <summary>
-/// 录制会话复现服务：与请求详情页【发送】按钮共用同一发送链路（IHttpClientService），按录制顺序串行多次发送
+/// 请求文件夹复现服务：与请求详情页【发送】按钮共用同一发送链路（IHttpClientService），按列表顺序串行多次发送
 /// </summary>
 public class ReplayService : IReplayService
 {
@@ -18,46 +18,49 @@ public class ReplayService : IReplayService
     }
 
     /// <summary>
-    /// 执行录制会话的复现
+    /// 执行请求列表的复现
     /// </summary>
-    /// <param name="session">要复现的录制会话</param>
+    /// <param name="requests">要复现的请求列表（按列表顺序执行）</param>
     /// <param name="onResultCompleted">单个请求完成后的回调（在调用线程同步执行，用于 UI 逐条刷新）</param>
     /// <returns>表示异步操作的任务</returns>
-    public async Task ExecuteAsync(RecordedSession session, Action<ReplayResult>? onResultCompleted = null)
+    public async Task ExecuteAsync(IReadOnlyList<RequestItem> requests, Action<ReplayResult>? onResultCompleted = null)
     {
-        foreach (var item in session.Requests.OrderBy(r => r.Order))
+        for (var i = 0; i < requests.Count; i++)
         {
-            var result = await ExecuteSingleAsync(item);
+            var result = await ExecuteSingleAsync(requests[i], i + 1);
             onResultCompleted?.Invoke(result);
         }
     }
 
     /// <summary>
-    /// 复现单个录制的 HTTP 请求：按方法分发到 IHttpClientService，与【发送】按钮行为完全一致
+    /// 复现单个请求：按方法分发到 IHttpClientService，与【发送】按钮行为完全一致
     /// </summary>
-    /// <param name="item">录制的 HTTP 请求</param>
+    /// <param name="item">要复现的请求</param>
+    /// <param name="order">执行顺序号（从 1 开始）</param>
     /// <returns>复现结果</returns>
-    private async Task<ReplayResult> ExecuteSingleAsync(RecordedHttpRequest item)
+    private async Task<ReplayResult> ExecuteSingleAsync(RequestItem item, int order)
     {
+        var method = item.RequestVerb.ToString().ToUpperInvariant();
+
         var result = new ReplayResult
         {
-            Order = item.Order,
-            Method = item.Method,
-            Url = item.Url
+            Order = order,
+            Method = method,
+            Url = item.Path
         };
 
         var stopwatch = Stopwatch.StartNew();
         try
         {
             var body = GetRequestBody(item.Body);
-            await (item.Method.ToUpperInvariant() switch
+            await (method switch
             {
-                "GET" => _httpClientService.GetStringAsync(item.Url),
-                "POST" => _httpClientService.PostStringAsync(item.Url, body!),
-                "PUT" => _httpClientService.PutStringAsync(item.Url, body!),
-                "DELETE" => _httpClientService.DeleteStringAsync(item.Url),
-                "PATCH" => _httpClientService.PatchStringAsync(item.Url, body!),
-                _ => throw new NotSupportedException($"不支持的请求方法: {item.Method}")
+                "GET" => _httpClientService.GetStringAsync(item.Path),
+                "POST" => _httpClientService.PostStringAsync(item.Path, body!),
+                "PUT" => _httpClientService.PutStringAsync(item.Path, body!),
+                "DELETE" => _httpClientService.DeleteStringAsync(item.Path),
+                "PATCH" => _httpClientService.PatchStringAsync(item.Path, body!),
+                _ => throw new NotSupportedException($"不支持的请求方法: {method}")
             });
             result.StatusCode = 200;
             result.Success = true;
