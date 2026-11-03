@@ -1,16 +1,21 @@
 using ApiTestFramework.Application.Interfaces;
 using ApiTestFramework.Domain.Entities;
-using RestSharp;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace ApiTestFramework.Application.Services;
 
 /// <summary>
-/// 录制会话复现服务，按录制顺序依次发送 HTTP 请求
+/// 录制会话复现服务：与请求详情页【发送】按钮共用同一发送链路（IHttpClientService），按录制顺序串行多次发送
 /// </summary>
 public class ReplayService : IReplayService
 {
-    private readonly RestClient _client = new(new RestClientOptions { ThrowOnAnyError = false });
+    private readonly IHttpClientService _httpClientService;
+
+    public ReplayService(IHttpClientService httpClientService)
+    {
+        _httpClientService = httpClientService;
+    }
 
     /// <summary>
     /// 执行录制会话的复现
@@ -28,7 +33,7 @@ public class ReplayService : IReplayService
     }
 
     /// <summary>
-    /// 复现单个录制的 HTTP 请求
+    /// 复现单个录制的 HTTP 请求：按方法分发到 IHttpClientService，与【发送】按钮行为完全一致
     /// </summary>
     /// <param name="item">录制的 HTTP 请求</param>
     /// <returns>复现结果</returns>
@@ -41,33 +46,21 @@ public class ReplayService : IReplayService
             Url = item.Url
         };
 
-        var method = ParseMethod(item.Method);
-        var request = new RestRequest(item.Url, method);
-
-        foreach (var header in item.Headers)
-        {
-            if (string.Equals(header.Key, "Content-Length", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(header.Key, "Host", StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-            if (!string.IsNullOrEmpty(header.Value))
-            {
-                request.AddHeader(header.Key, header.Value);
-            }
-        }
-
-        if (!string.IsNullOrEmpty(item.Body))
-        {
-            request.AddStringBody(item.Body, DataFormat.Json);
-        }
-
         var stopwatch = Stopwatch.StartNew();
         try
         {
-            var response = await _client.ExecuteAsync(request);
-            result.StatusCode = (int)response.StatusCode;
-            result.Success = result.StatusCode == 200;
+            var body = GetRequestBody(item.Body);
+            await (item.Method.ToUpperInvariant() switch
+            {
+                "GET" => _httpClientService.GetStringAsync(item.Url),
+                "POST" => _httpClientService.PostStringAsync(item.Url, body!),
+                "PUT" => _httpClientService.PutStringAsync(item.Url, body!),
+                "DELETE" => _httpClientService.DeleteStringAsync(item.Url),
+                "PATCH" => _httpClientService.PatchStringAsync(item.Url, body!),
+                _ => throw new NotSupportedException($"不支持的请求方法: {item.Method}")
+            });
+            result.StatusCode = 200;
+            result.Success = true;
         }
         catch (Exception ex)
         {
@@ -85,22 +78,22 @@ public class ReplayService : IReplayService
     }
 
     /// <summary>
-    /// 将录制的 HTTP 方法字符串解析为 RestSharp 方法
+    /// 解析请求体：JSON 字符串反序列化为对象（与【发送】按钮的 GetRequestBody 逻辑一致），非 JSON 原样返回
     /// </summary>
-    /// <param name="method">HTTP 方法字符串</param>
-    /// <returns>RestSharp 方法，无法识别时默认为 GET</returns>
-    private static Method ParseMethod(string method)
+    private static object? GetRequestBody(string? body)
     {
-        return method.ToUpperInvariant() switch
+        if (string.IsNullOrWhiteSpace(body))
         {
-            "GET" => Method.Get,
-            "POST" => Method.Post,
-            "PUT" => Method.Put,
-            "DELETE" => Method.Delete,
-            "PATCH" => Method.Patch,
-            "HEAD" => Method.Head,
-            "OPTIONS" => Method.Options,
-            _ => Method.Get
-        };
+            return null;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<object>(body);
+        }
+        catch
+        {
+            return body;
+        }
     }
 }
